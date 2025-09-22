@@ -84,6 +84,28 @@ class DataValidator:
                 if field == 'summary' and len(str(value)) > 2000:
                     warnings.append(f"Summary field too long: {len(str(value))} characters")
 
+                # New optional fields validations (lightweight)
+                if field == 'email':
+                    if not re.match(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$", str(value)):
+                        warnings.append("Email format looks invalid")
+                if field == 'website':
+                    if not str(value).startswith(('http://', 'https://')):
+                        warnings.append("Website should start with http(s)://")
+                if field == 'phone':
+                    digits = re.sub(r"\D", "", str(value))
+                    if len(digits) < 7:
+                        warnings.append("Phone number too short to be valid")
+                if field == 'experience_years':
+                    try:
+                        years = int(value)
+                        if years < 0 or years > 60:
+                            warnings.append("Experience years outside plausible range (0-60)")
+                    except Exception:
+                        warnings.append("Experience years should be an integer")
+                if field == 'summary_other':
+                    if not isinstance(value, list):
+                        warnings.append("summary_other should be a list of strings")
+
         return warnings
 
     def validate_metadata_structure(self, profile: Dict) -> List[str]:

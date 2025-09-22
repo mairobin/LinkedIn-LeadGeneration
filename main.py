@@ -192,15 +192,14 @@ def main():
 
             # Initialize extractor with AI option
             openai_api_key = None
-            openai_model = "gpt-3.5-turbo"  # Default
+            openai_model = None  # Model is chosen per-operation inside extractor
             if args.use_ai:
                 import os
                 openai_api_key = os.getenv('OPENAI_API_KEY')
-                openai_model = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
                 if not openai_api_key:
                     logging.error("--use-ai specified but OPENAI_API_KEY not found in .env file")
                     sys.exit(1)
-                logging.info(f"Using OpenAI model: {openai_model}")
+                logging.info("Using per-operation model presets (chat: gpt-4o-mini, responses: gpt-4o-mini)")
 
             extractor = LinkedInDataExtractor(use_ai=args.use_ai, openai_api_key=openai_api_key, openai_model=openai_model)
             validator = DataValidator()
@@ -234,6 +233,11 @@ def main():
 
         # Clean profile data
         cleaned_profiles = [validator.clean_profile_data(profile) for profile in unique_profiles]
+
+        # Enhance with website information if AI is enabled
+        if args.use_ai:
+            logging.info("Enhancing profiles with company websites...")
+            cleaned_profiles = extractor.enhance_profiles_with_websites(cleaned_profiles)
 
         # Get statistics
         extraction_stats = extractor.get_extraction_stats()

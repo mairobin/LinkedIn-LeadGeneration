@@ -14,10 +14,14 @@ except ImportError:
 class AIProfileExtractor:
     """Uses OpenAI to extract structured data from LinkedIn profiles."""
 
-    def __init__(self, api_key: str, model: str = "gpt-3.5-turbo"):
+    def __init__(self, api_key: str, model: str = None):
         self.client = openai.OpenAI(api_key=api_key)
-        self.model = model
-        logging.info(f"AI extractor initialized with model: {model}")
+        # Per-operation model selection (cost-efficient defaults)
+        self.model_chat = "gpt-4o-mini"
+        self.model_responses = "gpt-4o-mini"
+        logging.info(
+            f"AI extractor initialized with models: chat={self.model_chat}, responses={self.model_responses}"
+        )
         self.extraction_stats = {
             'ai_extractions_attempted': 0,
             'ai_extractions_successful': 0,
@@ -33,17 +37,21 @@ class AIProfileExtractor:
 
         try:
             completion_params = {
-                "model": self.model,
+                "model": self.model_chat,
                 "messages": [
                     {"role": "system", "content": "You are a professional data extraction assistant. Extract structured information from LinkedIn profiles and return only valid JSON."},
                     {"role": "user", "content": prompt}
                 ]
             }
 
-            if "gpt-5" not in self.model:
+            if "gpt-5" not in self.model_chat:
                 completion_params["temperature"] = 0
 
-            if "gpt-4o" in self.model or "gpt-4" in self.model or "gpt-5" in self.model:
+            if (
+                "gpt-4o" in self.model_chat
+                or "gpt-4" in self.model_chat
+                or "gpt-5" in self.model_chat
+            ):
                 completion_params["max_completion_tokens"] = 500
             else:
                 completion_params["max_tokens"] = 500
@@ -160,6 +168,198 @@ OTHER RULES:
                     cleaned[field] = cleaned_value
 
         return cleaned
+
+    def get_company_website(self, company_name: str, location: str = None) -> Optional[str]:
+        """Find company website using three-tier cost optimization: domain prediction → AI knowledge → web search."""
+        if not company_name or len(company_name.strip()) < 2:
+            return None
+
+        # First try: Domain prediction (FREE - fastest)
+        logging.info(f"Trying domain prediction for {company_name}")
+        website_url = self._predict_company_domain(company_name)
+        
+        if website_url:
+            logging.info(f"Found website using domain prediction: {website_url}")
+            return website_url
+
+        # Second try: Knowledge-based AI (CHEAP)
+        logging.info(f"Domain prediction failed, trying knowledge-based lookup for {company_name}")
+        website_url = self._get_company_website_fallback(company_name, location)
+        
+        if website_url:
+            logging.info(f"Found website using knowledge-based approach: {website_url}")
+            return website_url
+
+        # Third try: Web search AI (EXPENSIVE - last resort)
+        logging.info(f"Knowledge-based lookup failed, trying web search for {company_name}")
+        
+        try:
+            # Use OpenAI Responses API with web search tool
+            response = self.client.responses.create(
+                model=self.model_responses,
+                tools=[{"type": "web_search"}],
+                input=f"Find the official website URL of the company '{company_name.strip()}'. Return only the URL."
+            )
+
+            # Extract the model output - find the message in the output
+            content = None
+            for item in response.output:
+                if hasattr(item, 'type') and item.type == 'message':
+                    if hasattr(item, 'content') and len(item.content) > 0:
+                        content = item.content[0].text.strip()
+                        break
+            
+            if not content:
+                logging.warning(f"Could not extract content from web search response for {company_name}")
+                return None
+
+            # If the response indicates uncertainty, return None
+            if any(word in content.lower() for word in ['unknown', 'not sure', 'cannot', "don't know", 'unclear', 'not found', 'unable to find']):
+                logging.info(f"Web search API couldn't find confident result for {company_name}")
+                return None
+
+            website_url = self._extract_and_validate_url(content)
+            if website_url:
+                logging.info(f"Found website using web search API: {website_url}")
+            else:
+                logging.info(f"Web search API found response but couldn't extract valid URL for {company_name}")
+            
+            return website_url
+
+        except AttributeError:
+            logging.warning(f"Responses API not available for {company_name}")
+            return None
+        except Exception as e:
+            logging.warning(f"Failed to find website for {company_name} using web search: {e}")
+            return None
+
+    def _predict_company_domain(self, company_name: str) -> Optional[str]:
+        """Predict company domain using common patterns (FREE approach)."""
+        try:
+            import socket
+            import requests
+        except ImportError:
+            logging.warning("Required libraries for domain prediction not available")
+            return None
+        
+        clean_name = self._clean_company_name(company_name)
+        if not clean_name:
+            return None
+        
+        # Generate domain candidates
+        candidates = [
+            f"{clean_name}.com",
+            f"{clean_name}.de",  # German companies
+            f"{clean_name}.io",  # Tech companies
+            f"{clean_name}.ai",  # AI companies
+            f"{clean_name}.org",
+            f"{clean_name.replace(' ', '')}.com",
+            f"{clean_name.replace(' ', '-')}.com",
+            f"{clean_name.replace(' ', '')}.de",
+            f"{clean_name.replace(' ', '')}.io",
+            f"{clean_name.replace(' ', '')}.ai"
+        ]
+        
+        # Test each candidate
+        for domain in candidates:
+            if self._validate_domain(domain):
+                return f"https://{domain}"
+        
+        return None
+    
+    def _clean_company_name(self, name: str) -> Optional[str]:
+        """Clean company name for domain prediction."""
+        if not name:
+            return None
+        
+        name = name.lower().strip()
+        
+        # Handle German umlauts
+        name = name.replace('ä', 'ae').replace('ö', 'oe').replace('ü', 'ue')
+        name = name.replace('ß', 'ss')
+        
+        # Remove legal suffixes
+        suffixes = ['gmbh', 'ltd', 'inc', 'corp', 'ag', 'co', 'kg', '& co', 'se', 'llc']
+        for suffix in suffixes:
+            name = name.replace(f' {suffix}', '').replace(f' & {suffix}', '')
+        
+        # Remove special characters
+        import re
+        name = re.sub(r'[^a-z0-9\s-]', '', name)
+        name = name.strip()
+        
+        # Must be reasonable length
+        if len(name) < 2 or len(name) > 50:
+            return None
+            
+        return name
+    
+    def _validate_domain(self, domain: str) -> bool:
+        """Validate if domain exists and is accessible."""
+        try:
+            import socket
+            import requests
+            
+            # Quick DNS check
+            socket.gethostbyname(domain)
+            
+            # HTTP accessibility check with short timeout
+            response = requests.head(f"https://{domain}", timeout=2, allow_redirects=True)
+            return 200 <= response.status_code < 400
+            
+        except Exception:
+            # Try HTTP instead of HTTPS
+            try:
+                response = requests.head(f"http://{domain}", timeout=2, allow_redirects=True)
+                return 200 <= response.status_code < 400
+            except Exception:
+                return False
+
+    def _get_company_website_fallback(self, company_name: str, location: str = None) -> Optional[str]:
+        """Fallback method using knowledge base when web search is unavailable."""
+        try:
+            company_desc = f"{company_name.strip()}"
+            if location:
+                company_desc += f" based in {location.strip()}"
+
+            response = self.client.chat.completions.create(
+                model=self.model_chat,
+                messages=[
+                    {"role": "system", "content": "You are a company information assistant. Based on your knowledge, provide official company websites for well-known companies. Only return websites you are confident about."},
+                    {"role": "user", "content": f"What is the official website URL for {company_desc}? Return only the main website URL (format: https://example.com) or say 'unknown' if you're not confident. Do not return Wikipedia, LinkedIn, or social media URLs."}
+                ],
+                max_completion_tokens=50,
+                temperature=0
+            )
+
+            content = response.choices[0].message.content.strip()
+
+            # If the response indicates uncertainty, return None
+            if any(word in content.lower() for word in ['unknown', 'not sure', 'cannot', "don't know", 'unclear', 'not found', 'confident']):
+                return None
+
+            return self._extract_and_validate_url(content)
+
+        except Exception as e:
+            logging.warning(f"Fallback website lookup failed for {company_name}: {e}")
+            return None
+
+    def _extract_and_validate_url(self, content: str) -> Optional[str]:
+        """Extract and validate URL from response."""
+        import re
+
+        # Look for URLs in the response
+        url_pattern = r'https?://(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,})'
+        urls = re.findall(url_pattern, content)
+
+        # Filter out unwanted sites
+        excluded = ['wikipedia', 'linkedin', 'facebook', 'twitter', 'crunchbase', 'xing']
+
+        for url in urls:
+            if not any(excluded_site in url.lower() for excluded_site in excluded):
+                return f"https://{url}"
+
+        return None
 
     def get_extraction_stats(self) -> Dict:
         """Return AI extraction statistics."""
@@ -523,6 +723,10 @@ class LinkedInDataExtractor:
                 profile_data['follower_count'] = follower_count.strip()
             if connection_count and len(connection_count.strip()) > 0:
                 profile_data['connection_count'] = connection_count.strip()
+            # Parse summary-derived fields (email, website, phone, experience_years, summary_other)
+            parsed_summary = self._extract_from_summary(summary)
+            profile_data.update(parsed_summary)
+
         else:
             # Fallback: preserve essential raw data with smart deduplication
             profile_data = {
@@ -562,10 +766,130 @@ class LinkedInDataExtractor:
             if raw_data:
                 profile_data['raw_data'] = raw_data
 
+            # Parse summary-derived fields (email, website, phone, experience_years, summary_other)
+            parsed_summary = self._extract_from_summary(summary)
+            profile_data.update(parsed_summary)
+
         self.extraction_stats['successful_extractions'] += 1
         logging.debug(f"Successfully extracted profile: {name}")
 
         return profile_data
+
+    def _extract_from_summary(self, summary_text: str) -> Dict[str, Optional[str]]:
+        """Extract email, website, phone number, years of experience, and summary_other from summary text.
+
+        - email: first valid email found
+        - website: first non-linkedin, non-social top-level URL found
+        - phone: first valid-looking phone number (E.164 or common international)
+        - experience_years: numeric years detected from patterns like "10+ years", "over 7 years"
+        - summary_other: list of valuable sentences not captured elsewhere (max 5)
+        """
+        result: Dict[str, Optional[str]] = {}
+        if not summary_text or not isinstance(summary_text, str):
+            return result
+
+        text = summary_text.strip()
+
+        # Email extraction
+        try:
+            email_match = re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text)
+            if email_match:
+                result['email'] = email_match.group(0)
+        except Exception:
+            pass
+
+        # URL extraction (prefer personal websites; skip linkedin and common socials)
+        try:
+            url_pattern = r"https?://[\w.-]+\.[A-Za-z]{2,}(?:/[\w\-./?%&=]*)?"
+            urls = re.findall(url_pattern, text)
+            excluded_domains = ['linkedin.com', 'twitter.com', 'x.com', 'facebook.com', 'instagram.com', 'youtube.com', 'medium.com']
+            website = None
+            for url in urls:
+                lowered = url.lower()
+                if not any(domain in lowered for domain in excluded_domains):
+                    website = url
+                    break
+            if not website:
+                # Also consider bare domains without protocol (e.g., example.com)
+                bare_pattern = r"\b(?:[a-zA-Z0-9-]+\.)+[A-Za-z]{2,}\b"
+                for bare in re.findall(bare_pattern, text):
+                    lowered = bare.lower()
+                    if not any(domain in lowered for domain in excluded_domains + ['wikipedia.org']):
+                        website = f"https://{bare}"
+                        break
+            if website:
+                result['website'] = website
+        except Exception:
+            pass
+
+        # Phone extraction (simple but robust; allows +country and spaces)
+        try:
+            phone_pattern = r"(?:(?:\+|00)\d{1,3}[\s-]?)?(?:\(?\d{2,4}\)?[\s-]?)?\d{3,4}[\s-]?\d{3,4}"
+            phone_match = re.search(phone_pattern, text)
+            if phone_match:
+                phone = phone_match.group(0)
+                # Basic filter to avoid catching years or counts; require at least 7 digits total
+                digits = re.sub(r"\D", "", phone)
+                if len(digits) >= 7:
+                    result['phone'] = phone.strip()
+        except Exception:
+            pass
+
+        # Years of experience extraction
+        try:
+            exp_patterns = [
+                r"(\d{1,2})\s*\+?\s*years?\s+of\s+experience",
+                r"over\s+(\d{1,2})\s+years",
+                r"(\d{1,2})\s*\+\s*years",
+                r"(\d{1,2})\s*years",  # last resort
+            ]
+            experience_years = None
+            for pattern in exp_patterns:
+                m = re.search(pattern, text, re.IGNORECASE)
+                if m:
+                    try:
+                        experience_years = int(m.group(1))
+                        break
+                    except Exception:
+                        continue
+            if experience_years is not None:
+                result['experience_years'] = experience_years
+        except Exception:
+            pass
+
+        # summary_other: pick top up to 5 sentences with signals (numbers, named entities-like)
+        try:
+            sentences = re.split(r"(?<=[.!?])\s+|\n+", text)
+            candidates: List[str] = []
+            for s in sentences:
+                s_clean = s.strip()
+                if not s_clean:
+                    continue
+                # Skip if it mostly duplicates extracted items
+                if 'email' in result and result['email'] and result['email'] in s_clean:
+                    continue
+                if 'website' in result and result['website'] and str(result['website']).replace('https://','').replace('http://','') in s_clean.lower():
+                    continue
+                if 'phone' in result and result['phone'] and result['phone'] in s_clean:
+                    continue
+                # Heuristics: sentences with numbers, capitalized words (proper nouns), or action verbs
+                has_number = bool(re.search(r"\d", s_clean))
+                has_proper = bool(re.search(r"\b[A-Z][a-z]{2,}\b(?:\s+[A-Z][a-z]{2,})?", s_clean))
+                if has_number or has_proper:
+                    candidates.append(s_clean)
+            if candidates:
+                # Deduplicate while preserving order
+                seen = set()
+                uniq = []
+                for c in candidates:
+                    if c not in seen:
+                        seen.add(c)
+                        uniq.append(c)
+                result['summary_other'] = uniq[:5]
+        except Exception:
+            pass
+
+        return result
 
     def _is_similar_text(self, text1: str, text2: str, threshold: float = 0.8) -> bool:
         """Check if two texts are similar enough to be considered duplicates."""
@@ -674,6 +998,29 @@ class LinkedInDataExtractor:
                     f"Duplicates removed: {self.extraction_stats['duplicate_profiles_removed']}")
 
         return profiles
+
+    def enhance_profiles_with_websites(self, profiles: List[Dict]) -> List[Dict]:
+        """Enhance profiles with company website information."""
+        if not self.use_ai or not self.ai_extractor:
+            logging.warning("AI extractor not available for website enhancement")
+            return profiles
+
+        enhanced_profiles = []
+        for profile in profiles:
+            enhanced_profile = profile.copy()
+
+            company = profile.get('company')
+            location = profile.get('location')
+
+            if company:
+                website = self.ai_extractor.get_company_website(company, location)
+                if website:
+                    enhanced_profile['company_website'] = website
+                    logging.debug(f"Found website for {company}: {website}")
+
+            enhanced_profiles.append(enhanced_profile)
+
+        return enhanced_profiles
 
     def get_extraction_stats(self) -> Dict:
         """Return extraction statistics."""

@@ -1,12 +1,13 @@
 # LinkedIn Lead Generation Tool
 
-A Python tool that searches Google for LinkedIn profiles and extracts structured data for lead generation purposes. The tool uses Google Custom Search API to find LinkedIn profiles and extracts profile information using web scraping with optional AI enhancement.
+A Python tool that searches Google for LinkedIn profiles and extracts structured data for lead generation purposes. The tool uses Google Custom Search API to find LinkedIn profiles and extracts profile information using web scraping with optional AI enhancement and automatic company website discovery.
 
 ## Purpose
 
 This tool helps businesses and recruiters collect LinkedIn profile data at scale by:
 - Searching for LinkedIn profiles using specific criteria (job titles, locations, skills)
 - Extracting structured profile information automatically
+- Finding company websites with cost-optimized AI search
 - Validating and cleaning extracted data
 - Exporting results in JSON format for further processing
 
@@ -28,7 +29,7 @@ This tool helps businesses and recruiters collect LinkedIn profile data at scale
 
 - **`main.py`** - Command-line interface and orchestration logic
 - **`google_searcher.py`** - Handles Google Custom Search API requests to find LinkedIn profiles
-- **`data_extractor.py`** - Scrapes LinkedIn profile pages and extracts structured data
+- **`data_extractor.py`** - Scrapes LinkedIn profile pages, extracts structured data, and finds company websites
 - **`data_validator.py`** - Validates extracted data, removes duplicates, and ensures data quality
 - **`config.py`** - Contains all configuration settings, API keys, and validation rules
 
@@ -57,15 +58,20 @@ This tool helps businesses and recruiters collect LinkedIn profile data at scale
 
 ## Usage
 
-### Basic Search
+### Basic Search (No AI - Default)
 ```bash
 python main.py --query "Software Engineer Stuttgart Python" --max-results 50
 ```
 
-### Search with Multiple Terms
+### AI-Enhanced Search with Website Discovery
 ```bash
 python main.py --terms "Data Scientist" "Berlin" "Machine Learning" --use-ai --max-results 30
 ```
+
+**Note:** By default, the tool runs without AI to minimize costs. Add `--use-ai` to enable:
+- Enhanced profile data extraction 
+- Automatic company website discovery
+- Better data accuracy (requires OpenAI API key)
 
 ### Debug and Testing
 ```bash
@@ -91,10 +97,19 @@ Results are saved as JSON files in the `output/` directory:
       "profile_url": "https://linkedin.com/in/johndoe",
       "current_position": "Senior Software Engineer",
       "company": "Tech Corp",
+      "company_website": "https://techcorp.com",
       "location": "Berlin, Germany",
       "summary": "Experienced software engineer specializing in...",
       "follower_count": "1,234",
-      "connection_count": "500+"
+      "connection_count": "500+",
+      "email": "john.doe@example.com",
+      "website": "https://johndoe.dev",
+      "phone": "+49 123 4567890",
+      "experience_years": 10,
+      "summary_other": [
+        "Scaled platform to 3M MAU",
+        "Open-source contributor at AwesomeProject"
+      ]
     }
   ],
   "metadata": {
@@ -116,6 +131,17 @@ Results are saved as JSON files in the `output/` directory:
   }
 }
 ```
+
+## Features
+
+### Cost-Optimized Website Discovery
+**Only available with `--use-ai` flag.** The tool automatically finds company websites using a three-tier approach:
+
+1. **Domain prediction** (free) - Tests common domain patterns like company.com, company.de
+2. **Knowledge-based AI** (cheap) - Uses AI's training data for well-known companies  
+3. **Web search AI** (expensive) - Last resort, searches the web for complex cases
+
+This approach reduces API costs by ~95% while maintaining complete coverage.
 
 ## Configuration
 

@@ -22,7 +22,19 @@ PROCESSED_OUTPUT_DIR = "processed"  # For future AI processing
 
 # Data Validation
 REQUIRED_FIELDS = ["name", "profile_url", "summary"]
-OPTIONAL_FIELDS = ["current_position", "company", "location", "follower_count", "connection_count"]
+OPTIONAL_FIELDS = [
+    "current_position",
+    "company",
+    "location",
+    "follower_count",
+    "connection_count",
+    # Summary-derived optional fields
+    "email",
+    "website",
+    "phone",
+    "experience_years",
+    "summary_other",
+]
 
 # Search Settings
 DEFAULT_MAX_RESULTS = 10
