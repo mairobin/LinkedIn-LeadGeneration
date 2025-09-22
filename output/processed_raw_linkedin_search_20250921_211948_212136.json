@@ -1,0 +1,77 @@
+{
+  "metadata": {
+    "search_query": "site:linkedin.com/in \"Stuttgart\" \"Head of Sales\"",
+    "search_terms": [
+      "Stuttgart",
+      "Head of Sales"
+    ],
+    "total_results": 5,
+    "generated_at": "2025-09-21T19:21:36.055789Z",
+    "extraction_version": "2.0",
+    "api_calls_used": 0
+  },
+  "profiles": [
+    {
+      "name": "Alex P. Wick ✓",
+      "profile_url": "https://linkedin.com/in/meetalexwick",
+      "summary": "Head of Sales &amp; Marketing @ LEADxperience 🧲✓ | #MrLXP | End-to-End Lead Management: From Identification to Closing Deals | Better Leads. Bigger Wins. All LXP. | 💬 🇩🇪 &amp; 🇺🇸 | +49 155 61621070 | leadxperience.de · 𝑰 𝑨𝑴 𝑨𝑳𝑬𝑿 – Your Partner in Smarter Sales and Marketing Success\n\nWith 20 years of global experience, I’ve worn many hats: engineer, strategist, marketer, and now, Head of Sales &amp; Marketing at LEADxperience (LXP). From mastering Print &amp; Media Technologies to redefining sales, my career is about one thing: turning potential into measurable success.\n\nToday, I’m &quot;Mr. LXP&quot; – the face of a SaaS platform that doesn’t just identify leads; it transforms them into actionable opportunities.\n\n𝑾𝒉𝒂𝒕 𝑫𝒓𝒊𝒗𝒆𝒔 𝑴𝒆?\n\n➤ 𝐕𝐢𝐬𝐢𝐨𝐧 𝐁𝐞𝐲𝐨𝐧𝐝 𝐁𝐨𝐫𝐝𝐞𝐫𝐬: I design solutions that empower businesses of all sizes to expand across industries and reach new markets global",
+      "current_position": "Head of Sales & Marketing",
+      "company": "LEADxperience",
+      "location": "Stuttgart, Germany",
+      "connection_count": "500+"
+    },
+    {
+      "name": "Oliver Obeth",
+      "profile_url": "https://linkedin.com/in/oliver-obeth-a96914197",
+      "summary": "Head of Sales Excellence · Manager with a demonstrated history of working in the automotive and manufacturing industry. Enable the team to drive towards excellence. Powerful individual in project management and optimizing process flows. Always strive for high usability in applications. Highly skilled to lead the transformation in the industry with deep knowledge for IT applications and the integration in daily use. Strengths in data analysis with the focus on the big picture with dedicated passion to contribute for the success for the company. · Experience: ElringKlinger · Education: IU International University of Applied Sciences · Location: Stuttgart Region · 500+ connections on LinkedIn. View Oliver Obeth’s profile on LinkedIn, a professional community of 1 billion members.",
+      "current_position": "Head of Sales Excellence",
+      "company": "ElringKlinger",
+      "location": "Stuttgart Region",
+      "follower_count": "838",
+      "connection_count": "500+"
+    },
+    {
+      "name": "Hans-Lothar Pasch",
+      "profile_url": "https://linkedin.com/in/hans-lothar-pasch-b4635589/en",
+      "summary": "Head of Development Automotive Electronics &amp; Software · Experience: IPETRONIK GmbH &amp; Co. KG · Education: Universiteit Twente · Location: Stuttgart Region · 500+ connections on LinkedIn. View Hans-Lothar Pasch’s profile on LinkedIn, a professional community of 1 billion members.",
+      "current_position": "Head of Development Automotive Electronics & Software",
+      "company": "IPETRONIK GmbH & Co. KG",
+      "location": "Stuttgart Region",
+      "connection_count": "500+"
+    },
+    {
+      "name": "Thomas Tonger",
+      "profile_url": "https://linkedin.com/in/thomas-tonger-53339a5/",
+      "summary": "Head of Sales Europe and Planning &amp; Reporting at Daimler Buses · Head of Sales Europe and global Planning &amp; Reporting at Daimler Truck’s bus &amp; coach division with new vehicle sales responsibility for 30 markets in Europe, MENA and Central Asia. 15+ years of global sales, product planning, and project management experience in commercial vehicles. Played a key role in shaping and implementing Daimler Buses&#39; transformation towards e-mobility. Six years of international experience in the U.S. and India. Passionate about developing markets and shaping high-performing, empowered organizations. · Experience: Daimler Truck AG · Education: IMD Business School · Location: Stuttgart Region · 500+ connections on LinkedIn. View Thomas Tonger’s profile on LinkedIn, a professional community of 1 billion members.",
+      "current_position": "Head of Sales Europe and Planning & Reporting",
+      "company": "Daimler Buses",
+      "location": "Stuttgart Region",
+      "connection_count": "500+"
+    },
+    {
+      "name": "Friedrich-W. Baumann",
+      "profile_url": "https://linkedin.com/in/fwbaumann",
+      "summary": "Member of the Executive Board at MAN Truck &amp; Bus SE - Head of Sales &amp; Customer Solutions · Customer-focused and profit-driven business executive with multi-billion dollar P&amp;L experience. Expertise in cross-cultural, cross-functional and cross-divisional assignments. A trusted leader recognized as strategic minded and execution focused with broad change leadership skills driving teams, vision, innovation and results. Early career experience include Finance &amp; Controlling functions, Management Consulting with Arthur Andersen and Horvath &amp; Partners. Military Service as Air Traffic Controller in the German Air Force.\n\n• Business Unit Leadership\t\t\n• Board Experience\t\t\t\n• Business Innovation\n• Top and Bottom-line Growth\t\n• M&amp;A Project Management\t\t\n• Global Perspective · Berufserfahrung: MAN Truck &amp; Bus SE · Ausbildung: Universitaet Stuttgart, Germany · Standort: Deutschland · 500+ Kontakte auf LinkedIn. Sehen Sie sich das Profil von Friedrich-W. Baumann auf LinkedIn, eine",
+      "current_position": "Member of the Executive Board at MAN Truck & Bus SE - Head of Sales & Customer Solutions",
+      "company": "MAN Truck & Bus SE",
+      "location": "Deutschland",
+      "connection_count": "500+"
+    }
+  ],
+  "extraction_stats": {
+    "successful_extractions": 5,
+    "failed_extractions": 0,
+    "duplicate_profiles_removed": 0,
+    "total_profiles": 5,
+    "valid_profiles": 5,
+    "invalid_profiles": 0,
+    "validation_errors": []
+  },
+  "processing_metadata": {
+    "processed_at": "2025-09-21T21:21:36.055807",
+    "input_file": "output/raw_linkedin_search_20250921_211948.json",
+    "ai_extraction_used": true,
+    "openai_model": "gpt-3.5-turbo",
+    "original_collection_date": "2025-09-21T21:19:48.435443"
+  }
+}

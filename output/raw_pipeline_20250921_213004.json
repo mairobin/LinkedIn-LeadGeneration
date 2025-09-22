@@ -1,0 +1,344 @@
+{
+  "metadata": {
+    "search_query": "site:linkedin.com/in \"CEO\" \"Germany\"",
+    "search_terms": [
+      "CEO",
+      "Germany"
+    ],
+    "total_results": 5,
+    "collected_at": "2025-09-21T21:30:05.104179",
+    "collection_version": "1.0",
+    "api_calls_used": 1
+  },
+  "raw_search_results": [
+    {
+      "google_result": {
+        "kind": "customsearch#result",
+        "title": "Andreas Eschbach - CEO and Founder of eschbach Germany and US",
+        "htmlTitle": "Andreas Eschbach - <b>CEO</b> and Founder of eschbach <b>Germany</b> and US",
+        "link": "https://www.linkedin.com/in/andreas-eschbach",
+        "displayLink": "www.linkedin.com",
+        "snippet": "Shiftconnector® - CEO and Founder of eschbach Germany and US · Founder and CEO of a German-American software company. eschbach provides enterprise solutions ...",
+        "htmlSnippet": "Shiftconnector® - <b>CEO</b> and Founder of eschbach <b>Germany</b> and US · Founder and <b>CEO</b> of a German-American software company. eschbach provides enterprise solutions&nbsp;...",
+        "formattedUrl": "https://www.linkedin.com/in/andreas-eschbach",
+        "htmlFormattedUrl": "https://www.linkedin.com/in/andreas-eschbach",
+        "pagemap": {
+          "cse_thumbnail": [
+            {
+              "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbJxyhWH0grNiUp_k7pDbFu4b7IZfAXDekTE5CN1Mcg4NX7Nplw4rdiniM&s",
+              "width": "200",
+              "height": "200"
+            }
+          ],
+          "metatags": [
+            {
+              "og:image": "https://media.licdn.com/dms/image/v2/C4D03AQEf-t6jK0_aeQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1639084829549?e=2147483647&v=beta&t=4LMSz_6X6DSxE5E3iEzsFO6CEM2LWuRlriLmDnvbG14",
+              "twitter:card": "summary",
+              "linkedin:pagetag": "openToProvider",
+              "platform-worker": "https://static.licdn.com/aero-v1/sc/h/7nirg34a8ey4y2l4rw7xgwxx4",
+              "al:android:package": "com.linkedin.android",
+              "bingbot": "max-image-preview:large, noarchive",
+              "locale": "en_US",
+              "al:ios:url": "https://www.linkedin.com/in/andreas-eschbach",
+              "og:description": "Shiftconnector® - CEO and Founder of eschbach Germany and US · Founder and CEO of a German-American software company. eschbach provides enterprise solutions to clients in the process industry, helping them improve productivity and operational excellence. \nShiftconnector® empowers manufacturing organizations. The collaboration platform is used globally by Fortune 500 companies and is available in 23 languages. · Experience: eschbach · Education: Wilhelm Büchner Hochschule · Location: Boston · 500+ connections on LinkedIn. View Andreas Eschbach’s profile on LinkedIn, a professional community of 1 billion members.",
+              "al:ios:app_store_id": "288429040",
+              "platform": "https://static.licdn.com/aero-v1/sc/h/9wng2n3x2yexy03wxd5bkunc1",
+              "twitter:image": "https://media.licdn.com/dms/image/v2/C4D03AQEf-t6jK0_aeQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1639084829549?e=2147483647&v=beta&t=4LMSz_6X6DSxE5E3iEzsFO6CEM2LWuRlriLmDnvbG14",
+              "profile:last_name": "Eschbach",
+              "twitter:site": "@Linkedin",
+              "litmsprofilename": "public-profile-frontend",
+              "profile:first_name": "Andreas",
+              "og:type": "profile",
+              "twitter:title": "Andreas Eschbach - Shiftconnector® - CEO and Founder of eschbach Germany and US | LinkedIn",
+              "al:ios:app_name": "LinkedIn",
+              "og:title": "Andreas Eschbach - Shiftconnector® - CEO and Founder of eschbach Germany and US | LinkedIn",
+              "pagekey": "public_profile_v3_mobile",
+              "al:android:url": "https://www.linkedin.com/in/andreas-eschbach",
+              "viewport": "width=device-width, initial-scale=1.0",
+              "twitter:description": "Shiftconnector® - CEO and Founder of eschbach Germany and US · Founder and CEO of a German-American software company. eschbach provides enterprise solutions to clients in the process industry, helping them improve productivity and operational excellence. \nShiftconnector® empowers manufacturing organizations. The collaboration platform is used globally by Fortune 500 companies and is available in 23 languages. · Experience: eschbach · Education: Wilhelm Büchner Hochschule · Location: Boston · 500+ connections on LinkedIn. View Andreas Eschbach’s profile on LinkedIn, a professional community of 1 billion members.",
+              "ubba": "https://static.licdn.com/aero-v1/sc/h/bxihe6m3m4770jxys6g3tvcfd",
+              "og:url": "https://www.linkedin.com/in/andreas-eschbach",
+              "al:android:app_name": "LinkedIn"
+            }
+          ],
+          "cse_image": [
+            {
+              "src": "https://media.licdn.com/dms/image/v2/C4D03AQEf-t6jK0_aeQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1639084829549?e=2147483647&v=beta&t=4LMSz_6X6DSxE5E3iEzsFO6CEM2LWuRlriLmDnvbG14"
+            }
+          ]
+        }
+      },
+      "search_metadata": {
+        "position": 1,
+        "page": 1,
+        "query_used": "site:linkedin.com/in \"CEO\" \"Germany\"",
+        "api_call_number": 1
+      }
+    },
+    {
+      "google_result": {
+        "kind": "customsearch#result",
+        "title": "Lutz Diederichs - CEO BNP Paribas Germany | LinkedIn",
+        "htmlTitle": "Lutz Diederichs - <b>CEO</b> BNP Paribas <b>Germany</b> | LinkedIn",
+        "link": "https://de.linkedin.com/in/lutz-diederichs/en",
+        "displayLink": "de.linkedin.com",
+        "snippet": "CEO BNP Paribas Germany · In a world undergoing profound change, I am committed to ensuring that we as BNP Paribas make a positive contribution.",
+        "htmlSnippet": "<b>CEO</b> BNP Paribas <b>Germany</b> · In a world undergoing profound change, I am committed to ensuring that we as BNP Paribas make a positive contribution.",
+        "formattedUrl": "https://de.linkedin.com/in/lutz-diederichs/en",
+        "htmlFormattedUrl": "https://de.linkedin.com/in/lutz-diederichs/en",
+        "pagemap": {
+          "cse_thumbnail": [
+            {
+              "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTkrSx4AgM8WBBn0bimwJr-5TQMK2iNbCBBZUaiFJmx2QAH7RPoUQ__hu4Q&s",
+              "width": "200",
+              "height": "200"
+            }
+          ],
+          "metatags": [
+            {
+              "og:image": "https://media.licdn.com/dms/image/v2/D4E03AQFiYx5Oee33xw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1729580501822?e=2147483647&v=beta&t=PXf57R7FBzSX7MNic1Jap0KeGPhf-NhU8e3fBCHP58c",
+              "twitter:card": "summary",
+              "linkedin:pagetag": "openToProvider",
+              "platform-worker": "https://static.licdn.com/aero-v1/sc/h/7nirg34a8ey4y2l4rw7xgwxx4",
+              "al:android:package": "com.linkedin.android",
+              "bingbot": "max-image-preview:large, noarchive",
+              "locale": "en_US",
+              "al:ios:url": "https://de.linkedin.com/in/lutz-diederichs/en",
+              "og:description": "CEO BNP Paribas Germany · In a world undergoing profound change, I am committed to ensuring that we as BNP Paribas make a positive contribution.\n \nTo do so we take responsibility – within our company and beyond. Together with around 6,000 employees in Germany, we support our clients in their projects, drive the economy’s sustainable transformation, and promote a society with more social participation. We are the bank for a changing world. · Experience: BNP Paribas · Education: Rheinische Friedrich-Wilhelms-Universität Bonn · Location: Frankfurt · 500+ connections on LinkedIn. View Lutz Diederichs’ profile on LinkedIn, a professional community of 1 billion members.",
+              "al:ios:app_store_id": "288429040",
+              "platform": "https://static.licdn.com/aero-v1/sc/h/9wng2n3x2yexy03wxd5bkunc1",
+              "twitter:image": "https://media.licdn.com/dms/image/v2/D4E03AQFiYx5Oee33xw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1729580501822?e=2147483647&v=beta&t=PXf57R7FBzSX7MNic1Jap0KeGPhf-NhU8e3fBCHP58c",
+              "profile:last_name": "Diederichs",
+              "twitter:site": "@Linkedin",
+              "litmsprofilename": "public-profile-frontend",
+              "profile:first_name": "Lutz",
+              "og:type": "profile",
+              "twitter:title": "Lutz Diederichs - CEO BNP Paribas Germany | LinkedIn",
+              "al:ios:app_name": "LinkedIn",
+              "og:title": "Lutz Diederichs - CEO BNP Paribas Germany | LinkedIn",
+              "pagekey": "public_profile_v3_mobile",
+              "al:android:url": "https://de.linkedin.com/in/lutz-diederichs/en",
+              "viewport": "width=device-width, initial-scale=1.0",
+              "twitter:description": "CEO BNP Paribas Germany · In a world undergoing profound change, I am committed to ensuring that we as BNP Paribas make a positive contribution.\n \nTo do so we take responsibility – within our company and beyond. Together with around 6,000 employees in Germany, we support our clients in their projects, drive the economy’s sustainable transformation, and promote a society with more social participation. We are the bank for a changing world. · Experience: BNP Paribas · Education: Rheinische Friedrich-Wilhelms-Universität Bonn · Location: Frankfurt · 500+ connections on LinkedIn. View Lutz Diederichs’ profile on LinkedIn, a professional community of 1 billion members.",
+              "ubba": "https://static.licdn.com/aero-v1/sc/h/bxihe6m3m4770jxys6g3tvcfd",
+              "og:url": "https://de.linkedin.com/in/lutz-diederichs/en",
+              "al:android:app_name": "LinkedIn"
+            }
+          ],
+          "cse_image": [
+            {
+              "src": "https://media.licdn.com/dms/image/v2/D4E03AQFiYx5Oee33xw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1729580501822?e=2147483647&v=beta&t=PXf57R7FBzSX7MNic1Jap0KeGPhf-NhU8e3fBCHP58c"
+            }
+          ],
+          "Person": [
+            {}
+          ]
+        }
+      },
+      "search_metadata": {
+        "position": 2,
+        "page": 1,
+        "query_used": "site:linkedin.com/in \"CEO\" \"Germany\"",
+        "api_call_number": 1
+      }
+    },
+    {
+      "google_result": {
+        "kind": "customsearch#result",
+        "title": "Walter Kadnar - IKEA | LinkedIn",
+        "htmlTitle": "Walter Kadnar - IKEA | LinkedIn",
+        "link": "https://nl.linkedin.com/in/walter-kadnar/en",
+        "displayLink": "nl.linkedin.com",
+        "snippet": "IKEA Germany- The winner of the 2024 Swedish Business Award for large enterprises. Swedish Chamber of Commerce, Business Sweden, and the Swedish Embassy in ...",
+        "htmlSnippet": "IKEA <b>Germany</b>- The winner of the 2024 Swedish Business Award for large enterprises. Swedish Chamber of Commerce, Business Sweden, and the Swedish Embassy in&nbsp;...",
+        "formattedUrl": "https://nl.linkedin.com/in/walter-kadnar/en",
+        "htmlFormattedUrl": "https://nl.linkedin.com/in/walter-kadnar/en",
+        "pagemap": {
+          "cse_thumbnail": [
+            {
+              "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8HSlaGr-fYCAVzIzkt1ul-Q587IkUK9mJ6Q527HGV2H7WNtNfF9ZSGpw&s",
+              "width": "200",
+              "height": "200"
+            }
+          ],
+          "metatags": [
+            {
+              "og:image": "https://media.licdn.com/dms/image/v2/D4E03AQEyHPW6bG9eAA/profile-displayphoto-shrink_200_200/B4EZQjCW4IHgAY-/0/1735754609248?e=2147483647&v=beta&t=nScY4cugpbvHY5a4ROZlujsDGmZCVNSKw7Q-QwtbkCo",
+              "twitter:card": "summary",
+              "linkedin:pagetag": "openToProvider",
+              "platform-worker": "https://static.licdn.com/aero-v1/sc/h/7nirg34a8ey4y2l4rw7xgwxx4",
+              "al:android:package": "com.linkedin.android",
+              "bingbot": "max-image-preview:large, noarchive",
+              "locale": "en_US",
+              "al:ios:url": "https://nl.linkedin.com/in/walter-kadnar/en",
+              "og:description": "The IKEA Vision “to create a better everyday life for the many people” has never been… · Experience: IKEA · Location: Netherlands · 500+ connections on LinkedIn. View Walter Kadnar’s profile on LinkedIn, a professional community of 1 billion members.",
+              "al:ios:app_store_id": "288429040",
+              "platform": "https://static.licdn.com/aero-v1/sc/h/9wng2n3x2yexy03wxd5bkunc1",
+              "twitter:image": "https://media.licdn.com/dms/image/v2/D4E03AQEyHPW6bG9eAA/profile-displayphoto-shrink_200_200/B4EZQjCW4IHgAY-/0/1735754609248?e=2147483647&v=beta&t=nScY4cugpbvHY5a4ROZlujsDGmZCVNSKw7Q-QwtbkCo",
+              "profile:last_name": "Kadnar",
+              "twitter:site": "@Linkedin",
+              "litmsprofilename": "public-profile-frontend",
+              "profile:first_name": "Walter",
+              "og:type": "profile",
+              "twitter:title": "Walter Kadnar - IKEA | LinkedIn",
+              "al:ios:app_name": "LinkedIn",
+              "og:title": "Walter Kadnar - IKEA | LinkedIn",
+              "pagekey": "public_profile_v3_mobile",
+              "al:android:url": "https://nl.linkedin.com/in/walter-kadnar/en",
+              "viewport": "width=device-width, initial-scale=1.0",
+              "twitter:description": "The IKEA Vision “to create a better everyday life for the many people” has never been… · Experience: IKEA · Location: Netherlands · 500+ connections on LinkedIn. View Walter Kadnar’s profile on LinkedIn, a professional community of 1 billion members.",
+              "ubba": "https://static.licdn.com/aero-v1/sc/h/bxihe6m3m4770jxys6g3tvcfd",
+              "og:url": "https://nl.linkedin.com/in/walter-kadnar/en",
+              "al:android:app_name": "LinkedIn"
+            }
+          ],
+          "cse_image": [
+            {
+              "src": "https://media.licdn.com/dms/image/v2/D4E03AQEyHPW6bG9eAA/profile-displayphoto-shrink_200_200/B4EZQjCW4IHgAY-/0/1735754609248?e=2147483647&v=beta&t=nScY4cugpbvHY5a4ROZlujsDGmZCVNSKw7Q-QwtbkCo"
+            }
+          ]
+        }
+      },
+      "search_metadata": {
+        "position": 3,
+        "page": 1,
+        "query_used": "site:linkedin.com/in \"CEO\" \"Germany\"",
+        "api_call_number": 1
+      }
+    },
+    {
+      "google_result": {
+        "kind": "customsearch#result",
+        "title": "Lennise Germany - Founder/CEO at Livy O's | LinkedIn",
+        "htmlTitle": "Lennise <b>Germany</b> - Founder/<b>CEO</b> at Livy O&#39;s | LinkedIn",
+        "link": "https://www.linkedin.com/in/lennise-germany-594461a7",
+        "displayLink": "www.linkedin.com",
+        "snippet": "Lennise Germany is the CEO of Livy O's Culinary Service Group. From humble beginnings selling meals from the trunk the family car in 2014.",
+        "htmlSnippet": "Lennise <b>Germany</b> is the <b>CEO</b> of Livy O&#39;s Culinary Service Group. From humble beginnings selling meals from the trunk the family car in 2014.",
+        "formattedUrl": "https://www.linkedin.com/in/lennise-germany-594461a7",
+        "htmlFormattedUrl": "https://www.linkedin.com/in/lennise-<b>germany</b>-594461a7",
+        "pagemap": {
+          "cse_thumbnail": [
+            {
+              "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBzYH0W0TjRm16v7zEszCofu29jQVAgadnvx0qhqb8PfYp1YLyOAioiT-E&s",
+              "width": "200",
+              "height": "200"
+            }
+          ],
+          "ProfilePage": [
+            {}
+          ],
+          "metatags": [
+            {
+              "og:image": "https://media.licdn.com/dms/image/v2/C5603AQFxgmr-lB-jvw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1601635286054?e=2147483647&v=beta&t=q_w614RHIcnLrPIzCaFIC0n8fjLGJcVxPwezzEdExVg",
+              "twitter:card": "summary",
+              "linkedin:pagetag": "openToProvider",
+              "platform-worker": "https://static.licdn.com/aero-v1/sc/h/7nirg34a8ey4y2l4rw7xgwxx4",
+              "al:android:package": "com.linkedin.android",
+              "bingbot": "max-image-preview:large, noarchive",
+              "locale": "en_US",
+              "al:ios:url": "https://www.linkedin.com/in/lennise-germany-594461a7",
+              "og:description": "Founder/CEO at Livy O&#39;s · Lennise Germany is the CEO of Livy O’s Culinary Service Group. From humble beginnings selling meals from the trunk the family car in 2014, under Lennise&#39;s leadership Livy O&#39;s has thrived to servicing over 2000 meals per day for charter schools &amp; rehabilitation facilities, become a preferred vendor for the USDA, performs wedding &amp; banquet catering, and was one of 16 caterers to perform at the 2021 NFL Super Bowl. \n\nAs one of the Bay Area’s most sought after caterers, Livy O’s, is not slowing down! As a chef, Lennise is routinely seen on ABC, NBC, and Fox television stations performing cooking demonstrations. As a CEO, Lennise serves as a board member of the South Tampa Chamber and a committee chair for the Minority Enterprise Program at the Tampa Bay Chamber of Commerce. She is the wife of Omar Germany, CFO of Livy O&#39;s and a mother of 6 amazing children. Lennise’s lifes motto is that she can do anything until she can’t!  · Experience: Livy O&#39;s C",
+              "al:ios:app_store_id": "288429040",
+              "platform": "https://static.licdn.com/aero-v1/sc/h/9wng2n3x2yexy03wxd5bkunc1",
+              "twitter:image": "https://media.licdn.com/dms/image/v2/C5603AQFxgmr-lB-jvw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1601635286054?e=2147483647&v=beta&t=q_w614RHIcnLrPIzCaFIC0n8fjLGJcVxPwezzEdExVg",
+              "profile:last_name": "Germany",
+              "twitter:site": "@Linkedin",
+              "litmsprofilename": "public-profile-frontend",
+              "profile:first_name": "Lennise",
+              "og:type": "profile",
+              "twitter:title": "Lennise Germany - Founder/CEO at Livy O&#39;s | LinkedIn",
+              "al:ios:app_name": "LinkedIn",
+              "og:title": "Lennise Germany - Founder/CEO at Livy O&#39;s | LinkedIn",
+              "pagekey": "public_profile_v3_mobile",
+              "al:android:url": "https://www.linkedin.com/in/lennise-germany-594461a7",
+              "viewport": "width=device-width, initial-scale=1.0",
+              "twitter:description": "Founder/CEO at Livy O&#39;s · Lennise Germany is the CEO of Livy O’s Culinary Service Group. From humble beginnings selling meals from the trunk the family car in 2014, under Lennise&#39;s leadership Livy O&#39;s has thrived to servicing over 2000 meals per day for charter schools &amp; rehabilitation facilities, become a preferred vendor for the USDA, performs wedding &amp; banquet catering, and was one of 16 caterers to perform at the 2021 NFL Super Bowl. \n\nAs one of the Bay Area’s most sought after caterers, Livy O’s, is not slowing down! As a chef, Lennise is routinely seen on ABC, NBC, and Fox television stations performing cooking demonstrations. As a CEO, Lennise serves as a board member of the South Tampa Chamber and a committee chair for the Minority Enterprise Program at the Tampa Bay Chamber of Commerce. She is the wife of Omar Germany, CFO of Livy O&#39;s and a mother of 6 amazing children. Lennise’s lifes motto is that she can do anything until she can’t!  · Experience: Livy O&#39;s C",
+              "ubba": "https://static.licdn.com/aero-v1/sc/h/bxihe6m3m4770jxys6g3tvcfd",
+              "og:url": "https://www.linkedin.com/in/lennise-germany-594461a7",
+              "al:android:app_name": "LinkedIn"
+            }
+          ],
+          "cse_image": [
+            {
+              "src": "https://media.licdn.com/dms/image/v2/C5603AQFxgmr-lB-jvw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1601635286054?e=2147483647&v=beta&t=q_w614RHIcnLrPIzCaFIC0n8fjLGJcVxPwezzEdExVg"
+            }
+          ]
+        }
+      },
+      "search_metadata": {
+        "position": 4,
+        "page": 1,
+        "query_used": "site:linkedin.com/in \"CEO\" \"Germany\"",
+        "api_call_number": 1
+      }
+    },
+    {
+      "google_result": {
+        "kind": "customsearch#result",
+        "title": "Jonathan Germany - CEO at Germany Dental | LinkedIn",
+        "htmlTitle": "Jonathan <b>Germany</b> - <b>CEO</b> at <b>Germany</b> Dental | LinkedIn",
+        "link": "https://www.linkedin.com/in/jonathan-germany-a377b811",
+        "displayLink": "www.linkedin.com",
+        "snippet": "CEO at Germany Dental · Experience: Germany Dental · Education: University of Mississippi · Location: Brandon · 500+ connections on LinkedIn.",
+        "htmlSnippet": "<b>CEO</b> at <b>Germany</b> Dental · Experience: <b>Germany</b> Dental · Education: University of Mississippi · Location: Brandon · 500+ connections on LinkedIn.",
+        "formattedUrl": "https://www.linkedin.com/in/jonathan-germany-a377b811",
+        "htmlFormattedUrl": "https://www.linkedin.com/in/jonathan-<b>germany</b>-a377b811",
+        "pagemap": {
+          "cse_thumbnail": [
+            {
+              "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQKuUSesKXbITCA5MojQdPYztiOO8GV3DKB75bDYdunex20XhXGbHIU_fd8&s",
+              "width": "200",
+              "height": "200"
+            }
+          ],
+          "ProfilePage": [
+            {}
+          ],
+          "metatags": [
+            {
+              "og:image": "https://media.licdn.com/dms/image/v2/C4E03AQEYNaXNYewM7w/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1657287835851?e=2147483647&v=beta&t=Nz0NMa-yb7LZcp4_4OWfnMLD2M0WHQdZLzHLonisSLE",
+              "twitter:card": "summary",
+              "linkedin:pagetag": "openToProvider",
+              "platform-worker": "https://static.licdn.com/aero-v1/sc/h/7nirg34a8ey4y2l4rw7xgwxx4",
+              "al:android:package": "com.linkedin.android",
+              "bingbot": "max-image-preview:large, noarchive",
+              "locale": "en_US",
+              "al:ios:url": "https://www.linkedin.com/in/jonathan-germany-a377b811",
+              "og:description": "CEO at Germany Dental · Experience: Germany Dental · Education: University of Mississippi · Location: Brandon · 500+ connections on LinkedIn. View Jonathan Germany’s profile on LinkedIn, a professional community of 1 billion members.",
+              "al:ios:app_store_id": "288429040",
+              "platform": "https://static.licdn.com/aero-v1/sc/h/9wng2n3x2yexy03wxd5bkunc1",
+              "twitter:image": "https://media.licdn.com/dms/image/v2/C4E03AQEYNaXNYewM7w/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1657287835851?e=2147483647&v=beta&t=Nz0NMa-yb7LZcp4_4OWfnMLD2M0WHQdZLzHLonisSLE",
+              "profile:last_name": "Germany",
+              "twitter:site": "@Linkedin",
+              "litmsprofilename": "public-profile-frontend",
+              "profile:first_name": "Jonathan",
+              "og:type": "profile",
+              "twitter:title": "Jonathan Germany - CEO at Germany Dental | LinkedIn",
+              "al:ios:app_name": "LinkedIn",
+              "og:title": "Jonathan Germany - CEO at Germany Dental | LinkedIn",
+              "pagekey": "public_profile_v3_mobile",
+              "al:android:url": "https://www.linkedin.com/in/jonathan-germany-a377b811",
+              "viewport": "width=device-width, initial-scale=1.0",
+              "twitter:description": "CEO at Germany Dental · Experience: Germany Dental · Education: University of Mississippi · Location: Brandon · 500+ connections on LinkedIn. View Jonathan Germany’s profile on LinkedIn, a professional community of 1 billion members.",
+              "ubba": "https://static.licdn.com/aero-v1/sc/h/bxihe6m3m4770jxys6g3tvcfd",
+              "og:url": "https://www.linkedin.com/in/jonathan-germany-a377b811",
+              "al:android:app_name": "LinkedIn"
+            }
+          ],
+          "cse_image": [
+            {
+              "src": "https://media.licdn.com/dms/image/v2/C4E03AQEYNaXNYewM7w/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1657287835851?e=2147483647&v=beta&t=Nz0NMa-yb7LZcp4_4OWfnMLD2M0WHQdZLzHLonisSLE"
+            }
+          ]
+        }
+      },
+      "search_metadata": {
+        "position": 5,
+        "page": 1,
+        "query_used": "site:linkedin.com/in \"CEO\" \"Germany\"",
+        "api_call_number": 1
+      }
+    }
+  ]
+}

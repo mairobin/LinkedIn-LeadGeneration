@@ -1,0 +1,188 @@
+{
+  "metadata": {
+    "search_query": "site:linkedin.com/in \"Software\" \"Engineer\"",
+    "search_terms": [
+      "Software",
+      "Engineer"
+    ],
+    "total_results": 2,
+    "generated_at": "2025-09-21T19:54:33.786201Z",
+    "extraction_version": "2.0",
+    "api_calls_used": 1,
+    "raw_results_count": 2
+  },
+  "profiles": [
+    {
+      "name": "Michael Len",
+      "profile_url": "https://linkedin.com/in/michaellen",
+      "summary": "Software Engineer at YouTube · I&#39;d prefer you check out my personal website for more information about myself: http://michaellen.com\n\n&#61;&#61;&#61;&#61;&#61;\n\nI&#39;m an energetic, highly motivated engineer that loves to work in companies that push the limits of a more personalized, interactive video experience. All eyes are on the video industry now. I want to make sure I&#39;m part of the spearhead of the industry, encouraging innovation that provides true value to the consumer&#39;s internet-centric life.\n\nI thrive on learning new things. I love expanding my breadth of knowledge, applying my experience from other domains to contribute to my current occupation. Most of my experience has been in the online video space, where I&#39;ve touched all viewer-facing products. This primarily includes features like advertising/monetization, user interface, video rendering, read-only APIs, mobile web optimization, content protection, and native mobile library development.\n\nI&#39;m constantly intrigued by person",
+      "current_position": "Software Engineer at YouTube",
+      "raw_data": {
+        "title": "Michael Len - Software Engineer at YouTube | LinkedIn",
+        "structured_data": {
+          "current_position": "Software Engineer at YouTube",
+          "company": "YouTube",
+          "snippet_title": "Software Engineer"
+        }
+      }
+    },
+    {
+      "name": "John Benson",
+      "profile_url": "https://linkedin.com/in/john-benson324",
+      "summary": "Software Engineer seeking new opportunities · I am a software engineer with 3 years of experience and have skills in Agile software development and database systems. I have extensive volunteering experience and I am always willing to teach. I am seeking a full-time position.  Please contact me at john.benson0327@gmail.com.\n\nMy journey with software engineering began in high school, as I taught myself enough C++ to work on my own game. This expanded into teaching my own class on C++ through my school’s Tech Team. The more coding, I did, the more I realized I enjoyed the act of coding itself, rather than just coding on videogames. With this newfound interest in both coding and working with people, a career in software engineering seemed like an obvious fit.\n\nWhile at MSOE, I had a great internship and California Eastern Labs where I Modified and completed an Android application for IoT residential service. I worked with a great team of industry vets who guided me and taught me a lot. For my senior design pro",
+      "current_position": "Software Engineer seeking new opportunities ...",
+      "raw_data": {
+        "title": "John Benson - Software Engineer seeking new opportunities ...",
+        "structured_data": {
+          "current_position": "Software Engineer seeking new opportunities",
+          "company": "people"
+        }
+      }
+    }
+  ],
+  "extraction_stats": {
+    "successful_extractions": 2,
+    "failed_extractions": 0,
+    "duplicate_profiles_removed": 0,
+    "total_profiles": 2,
+    "valid_profiles": 2,
+    "invalid_profiles": 0,
+    "validation_errors": []
+  },
+  "raw_search_results": [
+    {
+      "google_result": {
+        "kind": "customsearch#result",
+        "title": "Michael Len - Software Engineer at YouTube | LinkedIn",
+        "htmlTitle": "Michael Len - <b>Software Engineer</b> at YouTube | LinkedIn",
+        "link": "https://www.linkedin.com/in/michaellen",
+        "displayLink": "www.linkedin.com",
+        "snippet": "Software Engineer at YouTube · I'd prefer you check out my personal website for more information about myself: http://michaellen.com ===== I'm an energetic, ...",
+        "htmlSnippet": "<b>Software Engineer</b> at YouTube · I&#39;d prefer you check out my personal website for more information about myself: http://michaellen.com ===== I&#39;m an energetic,&nbsp;...",
+        "formattedUrl": "https://www.linkedin.com/in/michaellen",
+        "htmlFormattedUrl": "https://www.linkedin.com/in/michaellen",
+        "pagemap": {
+          "cse_thumbnail": [
+            {
+              "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrCv3mimDer28D2KKm_uooRR0t7owsYA5_VNzy5p3AI39xhQJsB4oWEGI&s",
+              "width": "200",
+              "height": "200"
+            }
+          ],
+          "ProfilePage": [
+            {}
+          ],
+          "metatags": [
+            {
+              "og:image": "https://media.licdn.com/dms/image/v2/C4D03AQE4L62wW7FNdw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1516555017351?e=2147483647&v=beta&t=wLVVsg1nqHsbjaS1dxbRcwJwLLz42jKbnUmU184rZBA",
+              "twitter:card": "summary",
+              "linkedin:pagetag": "openToProvider",
+              "platform-worker": "https://static.licdn.com/aero-v1/sc/h/7nirg34a8ey4y2l4rw7xgwxx4",
+              "al:android:package": "com.linkedin.android",
+              "bingbot": "max-image-preview:large, noarchive",
+              "locale": "en_US",
+              "al:ios:url": "https://www.linkedin.com/in/michaellen",
+              "og:description": "Software Engineer at YouTube · I&#39;d prefer you check out my personal website for more information about myself: http://michaellen.com\n\n&#61;&#61;&#61;&#61;&#61;\n\nI&#39;m an energetic, highly motivated engineer that loves to work in companies that push the limits of a more personalized, interactive video experience. All eyes are on the video industry now. I want to make sure I&#39;m part of the spearhead of the industry, encouraging innovation that provides true value to the consumer&#39;s internet-centric life.\n\nI thrive on learning new things. I love expanding my breadth of knowledge, applying my experience from other domains to contribute to my current occupation. Most of my experience has been in the online video space, where I&#39;ve touched all viewer-facing products. This primarily includes features like advertising/monetization, user interface, video rendering, read-only APIs, mobile web optimization, content protection, and native mobile library development.\n\nI&#39;m constantly intrigued by person",
+              "al:ios:app_store_id": "288429040",
+              "platform": "https://static.licdn.com/aero-v1/sc/h/9wng2n3x2yexy03wxd5bkunc1",
+              "twitter:image": "https://media.licdn.com/dms/image/v2/C4D03AQE4L62wW7FNdw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1516555017351?e=2147483647&v=beta&t=wLVVsg1nqHsbjaS1dxbRcwJwLLz42jKbnUmU184rZBA",
+              "profile:last_name": "Len",
+              "twitter:site": "@Linkedin",
+              "litmsprofilename": "public-profile-frontend",
+              "profile:first_name": "Michael",
+              "og:type": "profile",
+              "twitter:title": "Michael Len - Software Engineer at YouTube | LinkedIn",
+              "al:ios:app_name": "LinkedIn",
+              "og:title": "Michael Len - Software Engineer at YouTube | LinkedIn",
+              "pagekey": "public_profile_v3_mobile",
+              "al:android:url": "https://www.linkedin.com/in/michaellen",
+              "viewport": "width=device-width, initial-scale=1.0",
+              "twitter:description": "Software Engineer at YouTube · I&#39;d prefer you check out my personal website for more information about myself: http://michaellen.com\n\n&#61;&#61;&#61;&#61;&#61;\n\nI&#39;m an energetic, highly motivated engineer that loves to work in companies that push the limits of a more personalized, interactive video experience. All eyes are on the video industry now. I want to make sure I&#39;m part of the spearhead of the industry, encouraging innovation that provides true value to the consumer&#39;s internet-centric life.\n\nI thrive on learning new things. I love expanding my breadth of knowledge, applying my experience from other domains to contribute to my current occupation. Most of my experience has been in the online video space, where I&#39;ve touched all viewer-facing products. This primarily includes features like advertising/monetization, user interface, video rendering, read-only APIs, mobile web optimization, content protection, and native mobile library development.\n\nI&#39;m constantly intrigued by person",
+              "ubba": "https://static.licdn.com/aero-v1/sc/h/bxihe6m3m4770jxys6g3tvcfd",
+              "og:url": "https://www.linkedin.com/in/michaellen",
+              "al:android:app_name": "LinkedIn"
+            }
+          ],
+          "cse_image": [
+            {
+              "src": "https://media.licdn.com/dms/image/v2/C4D03AQE4L62wW7FNdw/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1516555017351?e=2147483647&v=beta&t=wLVVsg1nqHsbjaS1dxbRcwJwLLz42jKbnUmU184rZBA"
+            }
+          ]
+        }
+      },
+      "search_metadata": {
+        "position": 1,
+        "page": 1,
+        "query_used": "site:linkedin.com/in \"Software\" \"Engineer\"",
+        "api_call_number": 1
+      }
+    },
+    {
+      "google_result": {
+        "kind": "customsearch#result",
+        "title": "John Benson - Software Engineer seeking new opportunities ...",
+        "htmlTitle": "John Benson - <b>Software Engineer</b> seeking new opportunities ...",
+        "link": "https://www.linkedin.com/in/john-benson324",
+        "displayLink": "www.linkedin.com",
+        "snippet": "I am a software engineer with 3 years of experience and have skills in Agile software development and database systems.",
+        "htmlSnippet": "I am a <b>software engineer</b> with 3 years of experience and have skills in Agile software development and database systems.",
+        "formattedUrl": "https://www.linkedin.com/in/john-benson324",
+        "htmlFormattedUrl": "https://www.linkedin.com/in/john-benson324",
+        "pagemap": {
+          "cse_thumbnail": [
+            {
+              "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5SafZlmf42bl3aYTmFw1rE30Ug-lYcCBMKLz7zL54Hhi5hbGo18axNf-R&s",
+              "width": "200",
+              "height": "200"
+            }
+          ],
+          "metatags": [
+            {
+              "og:image": "https://media.licdn.com/dms/image/v2/D5603AQFWnheXGZLBBg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1730824557907?e=2147483647&v=beta&t=MzlyOddYsYvL7UAaxCh4pU-SQo1cXXoHTudKXeK8P6c",
+              "twitter:card": "summary",
+              "linkedin:pagetag": "openToProvider",
+              "platform-worker": "https://static.licdn.com/aero-v1/sc/h/7nirg34a8ey4y2l4rw7xgwxx4",
+              "al:android:package": "com.linkedin.android",
+              "bingbot": "max-image-preview:large, noarchive",
+              "locale": "en_US",
+              "al:ios:url": "https://www.linkedin.com/in/john-benson324",
+              "og:description": "Software Engineer seeking new opportunities · I am a software engineer with 3 years of experience and have skills in Agile software development and database systems. I have extensive volunteering experience and I am always willing to teach. I am seeking a full-time position.  Please contact me at john.benson0327@gmail.com.\n\nMy journey with software engineering began in high school, as I taught myself enough C++ to work on my own game. This expanded into teaching my own class on C++ through my school’s Tech Team. The more coding, I did, the more I realized I enjoyed the act of coding itself, rather than just coding on videogames. With this newfound interest in both coding and working with people, a career in software engineering seemed like an obvious fit.\n\nWhile at MSOE, I had a great internship and California Eastern Labs where I Modified and completed an Android application for IoT residential service. I worked with a great team of industry vets who guided me and taught me a lot. For my senior design pro",
+              "al:ios:app_store_id": "288429040",
+              "platform": "https://static.licdn.com/aero-v1/sc/h/9wng2n3x2yexy03wxd5bkunc1",
+              "twitter:image": "https://media.licdn.com/dms/image/v2/D5603AQFWnheXGZLBBg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1730824557907?e=2147483647&v=beta&t=MzlyOddYsYvL7UAaxCh4pU-SQo1cXXoHTudKXeK8P6c",
+              "profile:last_name": "Benson",
+              "twitter:site": "@Linkedin",
+              "litmsprofilename": "public-profile-frontend",
+              "profile:first_name": "John",
+              "og:type": "profile",
+              "twitter:title": "John Benson - Software Engineer seeking new opportunities | LinkedIn",
+              "al:ios:app_name": "LinkedIn",
+              "og:title": "John Benson - Software Engineer seeking new opportunities | LinkedIn",
+              "pagekey": "public_profile_v3_mobile",
+              "al:android:url": "https://www.linkedin.com/in/john-benson324",
+              "viewport": "width=device-width, initial-scale=1.0",
+              "twitter:description": "Software Engineer seeking new opportunities · I am a software engineer with 3 years of experience and have skills in Agile software development and database systems. I have extensive volunteering experience and I am always willing to teach. I am seeking a full-time position.  Please contact me at john.benson0327@gmail.com.\n\nMy journey with software engineering began in high school, as I taught myself enough C++ to work on my own game. This expanded into teaching my own class on C++ through my school’s Tech Team. The more coding, I did, the more I realized I enjoyed the act of coding itself, rather than just coding on videogames. With this newfound interest in both coding and working with people, a career in software engineering seemed like an obvious fit.\n\nWhile at MSOE, I had a great internship and California Eastern Labs where I Modified and completed an Android application for IoT residential service. I worked with a great team of industry vets who guided me and taught me a lot. For my senior design pro",
+              "ubba": "https://static.licdn.com/aero-v1/sc/h/bxihe6m3m4770jxys6g3tvcfd",
+              "og:url": "https://www.linkedin.com/in/john-benson324",
+              "al:android:app_name": "LinkedIn"
+            }
+          ],
+          "cse_image": [
+            {
+              "src": "https://media.licdn.com/dms/image/v2/D5603AQFWnheXGZLBBg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1730824557907?e=2147483647&v=beta&t=MzlyOddYsYvL7UAaxCh4pU-SQo1cXXoHTudKXeK8P6c"
+            }
+          ],
+          "Person": [
+            {}
+          ]
+        }
+      },
+      "search_metadata": {
+        "position": 2,
+        "page": 1,
+        "query_used": "site:linkedin.com/in \"Software\" \"Engineer\"",
+        "api_call_number": 1
+      }
+    }
+  ]
+}

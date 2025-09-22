@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "search_query": "site:linkedin.com/in \"Software\" \"Engineer\"",
+    "search_terms": [
+      "Software",
+      "Engineer"
+    ],
+    "total_results": 2,
+    "generated_at": "2025-09-21T19:54:42.492079Z",
+    "extraction_version": "2.0",
+    "api_calls_used": 1
+  },
+  "profiles": [
+    {
+      "name": "Michael Len",
+      "profile_url": "https://linkedin.com/in/michaellen",
+      "summary": "Software Engineer at YouTube · I&#39;d prefer you check out my personal website for more information about myself: http://michaellen.com\n\n&#61;&#61;&#61;&#61;&#61;\n\nI&#39;m an energetic, highly motivated engineer that loves to work in companies that push the limits of a more personalized, interactive video experience. All eyes are on the video industry now. I want to make sure I&#39;m part of the spearhead of the industry, encouraging innovation that provides true value to the consumer&#39;s internet-centric life.\n\nI thrive on learning new things. I love expanding my breadth of knowledge, applying my experience from other domains to contribute to my current occupation. Most of my experience has been in the online video space, where I&#39;ve touched all viewer-facing products. This primarily includes features like advertising/monetization, user interface, video rendering, read-only APIs, mobile web optimization, content protection, and native mobile library development.\n\nI&#39;m constantly intrigued by person",
+      "current_position": "Software Engineer at YouTube",
+      "raw_data": {
+        "title": "Michael Len - Software Engineer at YouTube | LinkedIn",
+        "structured_data": {
+          "current_position": "Software Engineer at YouTube",
+          "company": "YouTube",
+          "snippet_title": "Software Engineer"
+        }
+      }
+    },
+    {
+      "name": "John Benson",
+      "profile_url": "https://linkedin.com/in/john-benson324",
+      "summary": "Software Engineer seeking new opportunities · I am a software engineer with 3 years of experience and have skills in Agile software development and database systems. I have extensive volunteering experience and I am always willing to teach. I am seeking a full-time position.  Please contact me at john.benson0327@gmail.com.\n\nMy journey with software engineering began in high school, as I taught myself enough C++ to work on my own game. This expanded into teaching my own class on C++ through my school’s Tech Team. The more coding, I did, the more I realized I enjoyed the act of coding itself, rather than just coding on videogames. With this newfound interest in both coding and working with people, a career in software engineering seemed like an obvious fit.\n\nWhile at MSOE, I had a great internship and California Eastern Labs where I Modified and completed an Android application for IoT residential service. I worked with a great team of industry vets who guided me and taught me a lot. For my senior design pro",
+      "current_position": "Software Engineer seeking new opportunities ...",
+      "raw_data": {
+        "title": "John Benson - Software Engineer seeking new opportunities ...",
+        "structured_data": {
+          "current_position": "Software Engineer seeking new opportunities",
+          "company": "people"
+        }
+      }
+    }
+  ],
+  "extraction_stats": {
+    "successful_extractions": 2,
+    "failed_extractions": 0,
+    "duplicate_profiles_removed": 0,
+    "total_profiles": 2,
+    "valid_profiles": 2,
+    "invalid_profiles": 0,
+    "validation_errors": []
+  }
+}

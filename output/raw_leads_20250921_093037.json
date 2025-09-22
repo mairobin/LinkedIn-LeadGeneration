@@ -1,0 +1,336 @@
+{
+  "metadata": {
+    "search_query": "site:linkedin.com/in \"Software\" \"Engineer\" \"Stuttgart\" \"Python\"",
+    "search_terms": [
+      "Software",
+      "Engineer",
+      "Stuttgart",
+      "Python"
+    ],
+    "total_results": 20,
+    "generated_at": "2025-09-21T07:30:37.305411Z",
+    "extraction_version": "2.0",
+    "api_calls_used": 2
+  },
+  "profiles": [
+    {
+      "name": "Min Wang",
+      "profile_url": "https://linkedin.com/in/minwang-ai",
+      "summary": "Software Engineer, Student in MSc Financial Engineering | Python, C++, Matlab | Beside: Business Translator, Model 🤗 · With proficiency in Python, C++, and MATLAB, along with a foundation in control theory and mathematics, I specialize in machine learning, signal processing, and optimization. I have over 2 years of research experience applying these skills to robotic control and robotic vision.\n\nCurrently, I am transitioning from robotics to tech and quantitative finance, pursuing a second master’s in Financial Engineering while enhancing my computer science fundamentals, with a focus on data structures &amp; algorithms, as well as databases. I am also an upcoming student of Georgia Institute of Technology for a master’s in  Computer Science in Spring 2026.\n\nI am open to Software Engineer, Quantitative Developer, or Quantitative Strategist roles where I can further develop my programming and mathematical expertise.\n\nIn my leisure time, you will find me staying active in the gym, swimming pool, and nat",
+      "current_position": "Software Engineer, Student in MSc Financial ...",
+      "raw_data": {
+        "title": "Min Wang – Software Engineer, Student in MSc Financial ...",
+        "structured_data": {
+          "current_position": "Software Engineer, Student in MSc Financial Engineering",
+          "company": "In my leisure time",
+          "snippet_title": "Software Engineer",
+          "snippet_location": "Software Engineer, Student in MSc Financial Engineering"
+        }
+      }
+    },
+    {
+      "name": "Raushan Kumar",
+      "profile_url": "https://linkedin.com/in/raushan-in/",
+      "summary": "Software Engineer - Python | Go | AI | AWS Certified · I&#39;ve experience in backend REST development, JAMstack frontend development and Cloud DevOps in container orchestration.\nKnow more : https://raushan.tech · Experience: straiv · Education: Maharshi Dayanand University · Location: Germany · 500+ connections on LinkedIn. View Raushan Kumar’s profile on LinkedIn, a professional community of 1 billion members.",
+      "current_position": "Software Engineer - Python | Go | AI | AWS ...",
+      "raw_data": {
+        "title": "Raushan Kumar - Software Engineer - Python | Go | AI | AWS ...",
+        "snippet": "Software Engineer - Python | Go | AI | AWS Certified · I've experience in ... 2 months. Stuttgart, Baden-Württemberg, Germany. synthavo Graphic. Senior ...",
+        "structured_data": {
+          "current_position": "Software Engineer - Python",
+          "company": "straiv",
+          "location": "Germany",
+          "snippet_title": "Software Engineer",
+          "snippet_location": "Stuttgart, Baden"
+        }
+      }
+    },
+    {
+      "name": "Abdelaziz Abdelrasol",
+      "profile_url": "https://linkedin.com/in/abdelaziz-abdelrasol-aabab1b0",
+      "summary": "GenAI Engineer bei Vector Informatik GmbH | LLMs | Python | FastAPI | AI Infrastructure | Embedded Software · AI Engineer | Software Developer | Embedded Systems Expert\nI am a passionate Software Engineer with a diverse background in AI, GenAI (LLMs), and Embedded Software Development. Currently, I work as a GenAI Engineer at Vector Informatik, focusing on the development and deployment of Generative AI systems using FastAPI, Python, LlamaIndex, and LLM fine-tuning.\n\nPreviously, I spent years in automotive software engineering, delivering Flash Bootloaders, OFR solutions, and embedded systems for Mercedes-Benz, Volkswagen, Renault, and other OEMs. My technical expertise spans Python, C, AUTOSAR, AI Agents deployment, cloud infrastructure, and software architecture.\n\n✅ Key Expertise:\n\nGenerative AI (GenAI) &amp; LLMs – Fine-tuning, Prompt Engineering, AI Agents\n\nSoftware Development – Python, FastAPI, AI Infrastructure, Cloud Deployment\n\nEmbedded Systems – Flash Bootloader, AUTOSAR, UDS, C Programming",
+      "current_position": "GenAI Engineer bei Vector Informatik GmbH ...",
+      "raw_data": {
+        "title": "Abdelaziz Abdelrasol – GenAI Engineer bei Vector Informatik GmbH ...",
+        "snippet": "GenAI Engineer bei Vector Informatik GmbH | LLMs | Python | FastAPI | AI Infrastructure | Embedded Software. VECTOR Informatik Ain Shams University. Stuttgart, ...",
+        "structured_data": {
+          "current_position": "GenAI Engineer bei Vector Informatik GmbH",
+          "company": "Vector Informatik",
+          "snippet_title": "GenAI Engineer"
+        }
+      }
+    },
+    {
+      "name": "Shan Muhammad",
+      "profile_url": "https://linkedin.com/in/shanmuhammad137",
+      "summary": "Sr. Software QA Engineer | QA Automation Engineer | Certified Python Programmer | AWS · As a Senior Software QA Engineer at Straiv, I specialize in ensuring the quality and reliability of e-commerce software solutions built on Shopify, Ruby on Rails, React.js, and Node.js. I lead test automation initiatives, align tasks with company priorities, and drive seamless cross-platform integrations with Salesforce, BigCommerce, and Magento.\n\nWith over 6 years of experience in software development and quality assurance, I have successfully delivered high-quality projects for global clients across multiple industries. My expertise spans automated, manual, and regression testing, leveraging cutting-edge tools and frameworks, including Python, Pytest, JMeter, Postman, BDD (Cucumber/Gherkin), Cypress, Playwright, Selenium Grid, TestNG, JUnit, AWS, and more.\n\nI am passionate about automation, problem-solving, and continuous learning, holding 30+ industry certifications and a Bachelor’s degree in Software Engineering fro",
+      "current_position": "Sr. Software QA Engineer | QA Automation ...",
+      "raw_data": {
+        "title": "Shan Muhammad – Sr. Software QA Engineer | QA Automation ...",
+        "snippet": "Sr. Software QA Engineer | QA Automation Engineer | Certified Python ... Stuttgart · 500+ Kontakte auf LinkedIn. Sehen Sie sich das Profil von Shan ...",
+        "structured_data": {
+          "current_position": "Sr. Software QA Engineer",
+          "company": "Straiv",
+          "snippet_title": "Software QA Engineer"
+        }
+      }
+    },
+    {
+      "name": "Paul Gaikwad",
+      "profile_url": "https://in.linkedin.com/in/paul-gaikwad-2a8b81134",
+      "summary": "Embedded Software Engineer | C++ | Python | Real-Time Systems | Distributed Middleware | MSc INFOTECH – University of Stuttgart · I am a Master’s student in INFOTECH at the University of Stuttgart, having recently completed my thesis at Mercedes-Benz AG, where I focused on evaluating messaging middleware for distributed ECU testing in the automotive domain. My work proposed a broker-based framework, simulating real-world long-distance testing conditions and optimising message handling to improve performance and reliability across geographically distributed setups.\n\nBefore that, at IAV GmbH, I worked on ECU software validation using Vector CANoe and INCA, achieving higher testing efficiency through Python-based automation. My foundation in embedded systems and communication protocols was further strengthened through my role at Vertiv, where I developed embedded software solutions and contributed to quality assurance and automation.\n\n🔧 Key Skills &amp; Tools\nPython · C/C++ · Apache Pulsar · MQTT · K",
+      "current_position": "Embedded Software Engineer | C++ | Python | Real ...",
+      "raw_data": {
+        "title": "Paul Gaikwad - Embedded Software Engineer | C++ | Python | Real ...",
+        "structured_data": {
+          "current_position": "University of Stuttgart",
+          "company": "Python",
+          "location": "Stuttgart",
+          "snippet_title": "Software Engineer"
+        }
+      }
+    },
+    {
+      "name": "Prathamesh Kulkarni",
+      "profile_url": "https://linkedin.com/in/prathamesh-kulkarni-1908/",
+      "summary": "Software Engineer | Python + TypeScript | Building AI-Powered Applications · Software Engineer with two years of hands-on experience, currently leveling up with a Master&#39;s in Computer Science at the University of Passau.\n\nI enjoy building scalable and efficient solutions. In my previous roles, I&#39;ve had the chance to engineer a backend service that handles over 10 million events weekly with 99.9% uptime using Python and GCP. I&#39;ve also worked on the other side of the stack, improving system performance by 15% with TypeScript and Node.js and building out responsive UIs with React. \n\nFor me, the best way to learn is by doing and teaching. I love the adrenaline of a good coding competition and was thrilled to win 3rd place in the Cloudflight Coding Contest at my university.\n\nWhen I&#39;m not at the keyboard, I&#39;m usually out exploring on my bike or keeping my mind sharp with a sudoku puzzle.\n\nI&#39;m always open to discussing new technologies and interesting projects. Feel free to connect! · Exper",
+      "current_position": "Software Engineer | Python + TypeScript ...",
+      "raw_data": {
+        "title": "Prathamesh Kulkarni - Software Engineer | Python + TypeScript ...",
+        "snippet": "Software Engineer | Python + TypeScript | Building AI-Powered Applications. Tribes.AI Universität Passau. Stuttgart, Baden-Württemberg, Germany. 659 followers ...",
+        "structured_data": {
+          "current_position": "Software Engineer",
+          "snippet_title": "Software Engineer",
+          "snippet_location": "Stuttgart, Baden"
+        }
+      }
+    },
+    {
+      "name": "Nikita Majalikar",
+      "profile_url": "https://linkedin.com/in/nikita-majalikar-7a0277188",
+      "summary": "M.Sc. Electrical Engineering | Data | AI | Robotics | UAV | Embedded · I’m an engineer turned data professional with a background in smart systems, machine learning, and data analysis.  After completing my Master’s in Electrical Engineering (Smart Systems) in Germany, I specialised in applied machine learning.\n\nDuring my time at Bosch and as a research assistant, I worked hands-on with real-world data: cleaning and preparing datasets, automating data pipelines in Python, building dashboards in Tableau, and applying statistical and machine learning methods to improve decision-making and efficiency.  \n\nWhat excites me most is turning messy, complex data into clear insights and practical solutions. I enjoy bridging the gap between raw numbers and meaningful outcomes, whether that’s improving prediction accuracy, building dashboards for resource management, or exploring new ways to apply AI in real-world systems.  \n\nI’m now looking for opportunities as a  Data Engineer, Junior Data Scientist or Data Anal",
+      "current_position": "M.Sc. Electrical Engineering | Data | AI | Robotics ...",
+      "raw_data": {
+        "title": "Nikita Majalikar – M.Sc. Electrical Engineering | Data | AI | Robotics ...",
+        "snippet": "University of Stuttgart - Institute of Industrial Automation and Software Engineering University of Stuttgart ... Software Engineer. Bosch Global Software ...",
+        "structured_data": {
+          "current_position": "M.Sc. Electrical Engineering",
+          "snippet_title": "Software Engineer"
+        }
+      }
+    },
+    {
+      "name": "Ahmed Adel",
+      "profile_url": "https://linkedin.com/in/aadel2010",
+      "summary": "Embedded Software | C/C++ | Python | IoT | freeRTOS · Software Engineer with wide variety of expertise, always looking for challenging opportunities to gain more knowledge and utilize it · Experience: ASML · Education: Information Technology Institute (ITI) · Location: Eindhoven · 500+ connections on LinkedIn. View Ahmed Adel’s profile on LinkedIn, a professional community of 1 billion members.",
+      "current_position": "Embedded Software | C/C++ | Python | IoT | freeRTOS ...",
+      "raw_data": {
+        "title": "Ahmed Adel - Embedded Software | C/C++ | Python | IoT | freeRTOS ...",
+        "structured_data": {
+          "current_position": "Embedded Software",
+          "company": "ASML",
+          "location": "Eindhoven",
+          "snippet_title": "Software Engineer"
+        }
+      }
+    },
+    {
+      "name": "Khaled Gabr",
+      "profile_url": "https://linkedin.com/in/khalidgabr/",
+      "summary": "Software Robotics Engineer · Hi, I’m Khaled, a Robotics Software Engineer who loves building  autonomous mobile robotics products. I recently developed an Automated Guided Vehicle(AGV) for warehouse management. I’d love to combine my passion for learning and Working with my software development skills to continue building  autonomous mobile robotics for people. · Experience: Prince Sultan University · Education: Higher Technological Institute · Location: Abu Dhabi Emirate · 500+ connections on LinkedIn. View Khaled Gabr’s profile on LinkedIn, a professional community of 1 billion members.",
+      "current_position": "Software Robotics Engineer",
+      "raw_data": {
+        "title": "Khaled Gabr - Software Robotics Engineer | LinkedIn",
+        "snippet": "Software Robotics Engineer · Hi, I'm Khaled, a Robotics Software Engineer who loves building autonomous mobile robotics products ... Python Basics for Data ...",
+        "structured_data": {
+          "current_position": "Software Robotics Engineer",
+          "company": "Prince Sultan University",
+          "location": "Abu Dhabi Emirate",
+          "snippet_title": "Software Engineer"
+        }
+      }
+    },
+    {
+      "name": "Thiago Genez",
+      "profile_url": "https://uk.linkedin.com/in/thiagogenez",
+      "summary": "Senior Software Engineer @ Qt Group | PhD in Computer Science · 👋 About Me: \nI’m a Senior Software Engineer at The Qt Group in Stuttgart, Germany, with a strong focus on DevOps, automation, and CI/CD pipelines, working mainly with Jenkins and GitLab.\n\nPreviously, I worked at EMBL-EBI (European Bioinformatics Institute) in Cambridge, UK, where I contributed to high-performance computing (HPC) pipelines running on SLURM, and supported bioinformatics platforms using Terraform and Kubernetes.\n\nI hold a Doctorate (Dr.) in Computer Science from the University of Campinas (Unicamp), Brazil, and bring over five years of R&amp;D experience in cloud computing. My expertise spans data analytics, problem modeling, and optimisation.\n\n🚀 What I enjoy most:\nSolving complex technical problems, building robust infrastructure, and collaborating with cross-functional teams to deliver scalable, cloud-based solutions.\n\n🛠️ Technical Toolkit:\n- Languages: Python, Java, C/C++, Bash\n- DevOps &amp; Infrastructure: Git, Je",
+      "current_position": "Senior Software Engineer @ Qt Group | PhD in ...",
+      "raw_data": {
+        "title": "Thiago Genez - Senior Software Engineer @ Qt Group | PhD in ...",
+        "snippet": "... Python, Java, C/C++, Bash - DevOps & Infrastructure: Git, Jenkins ... I'm a Senior Software Engineer at The Qt Group in Stuttgart, Germany, with a ...",
+        "structured_data": {
+          "current_position": "Senior Software Engineer @ Qt Group",
+          "company": "Qt Group",
+          "location": "Stuttgart",
+          "snippet_title": "Senior Software Engineer",
+          "snippet_location": "Senior Software Engineer at The Qt Group in Stuttgart, Germany"
+        }
+      }
+    },
+    {
+      "name": "Abdul Basith Kamaldheen",
+      "profile_url": "https://linkedin.com/in/abdulbasithkamaldheen",
+      "summary": "Software Developer | Test Automation | C++ | Python · Masters in Software Technology at Stuttgart University of Applied Sciences.  \n\n10 years of full time experience in the field of software development and quality assurance (QA).\n\n5 years and 8 months of QA experience at Verizon Data Services as manual and test automation engineer for web and mobile applications.  Team player and quality centered approach having worked both as individual contributor and test lead for onshore and offshore automation team.\n\n4 years and 5 months of software development experience at TeamViewer GmbH, Germany as C++ developer.\n\n19 months of part time experience in Germany as intern, working student and master thesis in the field of machine learning and test automation. · Berufserfahrung: TeamViewer Germany GmbH · Ausbildung: Stuttgart University of Applied Sciences · Standort: Stuttgart · 500+ Kontakte auf LinkedIn. Sehen Sie sich das Profil von Abdul Basith Kamaldheen auf LinkedIn, einer professionellen Community mit mehr a",
+      "current_position": "Software Developer | C++ | Python",
+      "raw_data": {
+        "title": "Abdul Basith Kamaldheen – Software Developer | C++ | Python",
+        "snippet": "Software Developer | Test Automation | C++ | Python · Masters in Software Technology at Stuttgart ... Software Engineer. TeamViewer Germany GmbH. Okt. 2019 ...",
+        "structured_data": {
+          "current_position": "Software Developer",
+          "location": "Stuttgart University of Applied Sciences",
+          "snippet_title": "Software Engineer",
+          "snippet_location": "TeamViewer Germany"
+        }
+      }
+    },
+    {
+      "name": "Chaitanya Suresh Joshi",
+      "profile_url": "https://linkedin.com/in/chaitanya-suresh-joshi-0a82a6169",
+      "summary": "Digital Design Engineer | ASIC/FPGA | RTL, VHDL, Verification | Python &amp; Tcl Automation | Master’s Student, University of Stuttgart · Master’s student in Embedded Systems at the University of Stuttgart with hands-on experience in ASIC and FPGA design. At Bosch, I’ve worked on RTL design, verification, and automation using VHDL, Python, and Tcl. My background spans FPGA prototyping, digital system design, and EDA tools, bridging theory with real-world applications. I’m now seeking opportunities in Digital/ASIC/FPGA Design and Verification, where I can contribute to building efficient, reliable hardware systems. · Berufserfahrung: Bosch · Ausbildung: University of Stuttgart · Standort: Deutschland · 477 Kontakte auf LinkedIn. Sehen Sie sich das Profil von Chaitanya Suresh Joshi auf LinkedIn, einer professionellen Community mit mehr als 1 Milliarde Mitgliedern, an.",
+      "current_position": "Digital Design Engineer | ASIC/FPGA ...",
+      "raw_data": {
+        "title": "Chaitanya Suresh Joshi – Digital Design Engineer | ASIC/FPGA ...",
+        "snippet": "... Python & Tcl Automation | Master's Student, University of Stuttgart ... University of Stuttgart - Institute of Industrial Automation and Software Engineering.",
+        "structured_data": {
+          "current_position": "Digital Design Engineer",
+          "location": "Stuttgart",
+          "snippet_title": "Software Engineer",
+          "snippet_location": "Student, University of Stuttgart"
+        }
+      }
+    },
+    {
+      "name": "Matthias Ellmer",
+      "profile_url": "https://linkedin.com/in/matthiasellmer",
+      "summary": "PhD | Software Engineer and  Spatial Scientist at Planet | C++ | Python | US Permanent Resident · • NASA Researcher in sensor data processing, geodesy, covariance analysis, and parameter estimation.\n• Developing advanced algorithms in C++ for high performance computing analysis of vast datasets.\n• Leveraging Python for data science applications, prototyping, and scripting.\n• Expertise in Earth observation satellite missions like GRACE, GRACE-FO, and GRACE-C.\n\nSpatial data has always fascinated me. Maps are a gateway to endless discovery, their intricate details telling stories of landscapes, data, and journeys. I have been following this passion throughout my career, leveraging software engineering to unlock the full potential of spatial information. Let&#39;s connect and explore the possibilities! · Experience: Planet · Education: Technische Universität Graz · Location: Pasadena · 379 connections on LinkedIn. View Matthias Ellmer’s profile on LinkedIn, a professional community of 1 billion me",
+      "current_position": "PhD | Software Engineer and Spatial Scientist at ...",
+      "raw_data": {
+        "title": "Matthias Ellmer - PhD | Software Engineer and Spatial Scientist at ...",
+        "snippet": "PhD | Software Engineer and Spatial Scientist at Planet | C++ | Python | US ... University of Stuttgart. May 2008 - Jan 2010 1 year 9 months.",
+        "structured_data": {
+          "company": "Planet",
+          "location": "Pasadena",
+          "snippet_title": "Software Engineer"
+        }
+      }
+    },
+    {
+      "name": "Cecília Jardim Reis Souza",
+      "profile_url": "https://linkedin.com/in/ceciliasouza1",
+      "summary": "GIS Software Developer | Python | ArcPy | ArcGIS | Spatial Data &gt; Turning Data into Maps · Geoinformatics professional with an environmental engineering background, offering expertise in geospatial technology, software development, and GIS analysis. Proficient in Python, ArcPy and Esri environments, with a track record of process automation and effective team collaboration. · Berufserfahrung: German Aerospace Center (DLR) · Ausbildung: University of Münster · Standort: Stuttgart · 500+ Kontakte auf LinkedIn. Sehen Sie sich das Profil von Cecília Jardim Reis Souza auf LinkedIn, einer professionellen Community mit mehr als 1 Milliarde Mitgliedern, an.",
+      "current_position": "GIS Software Developer | Python ...",
+      "raw_data": {
+        "title": "Cecília Jardim Reis Souza – GIS Software Developer | Python ...",
+        "snippet": "Stuttgart, Baden-Württemberg, Germany. Research on carbon neutrality for the Brazilian aviation industry for the year 2050. Python software modelling of ...",
+        "structured_data": {
+          "current_position": "GIS Software Developer",
+          "location": "Stuttgart",
+          "snippet_location": "Stuttgart, Baden"
+        }
+      }
+    },
+    {
+      "name": "Priya Ghayal",
+      "profile_url": "https://linkedin.com/in/priya-ghayal",
+      "summary": "Software Engineer | Data Analyst | Python, SQL, AWS, SQL, Pandas, Tableau · Software Engineer with 3 years of experience building scalable backend systems, REST APIs, and cloud-native applications using Python, SQL, AWS.\n\nAt TransnetBW, I design data pipelines and automation tools that improve performance and reduce manual effort. \n\nSkilled in data analysis (Pandas, Tableau, Power BI, SQL), testing (Pytest, Unittest), and deploying robust, containerized solutions. \n\nPassionate about clean code, system design, and making data work smarter. · Berufserfahrung: TransnetBW GmbH · Ausbildung: Hochschule für Technik Stuttgart · Standort: Stuttgart · 500+ Kontakte auf LinkedIn. Sehen Sie sich das Profil von Priya Ghayal auf LinkedIn, einer professionellen Community mit mehr als 1 Milliarde Mitgliedern, an.",
+      "current_position": "Software Engineer | Data Analyst | Python, SQL ...",
+      "raw_data": {
+        "title": "Priya Ghayal – Software Engineer | Data Analyst | Python, SQL ...",
+        "snippet": "Priya Ghayal. Software Engineer | Data Analyst | Python, SQL, AWS, SQL, Pandas, Tableau. TransnetBW GmbH Hochschule für Technik Stuttgart. Stuttgart, Baden- ...",
+        "structured_data": {
+          "current_position": "Software Engineer",
+          "company": "Passionate about clean code",
+          "location": "Stuttgart",
+          "snippet_title": "Software Engineer",
+          "snippet_location": "Python, SQL, AWS, SQL"
+        }
+      }
+    },
+    {
+      "name": "Tolga Cetingöz",
+      "profile_url": "https://linkedin.com/in/tolga-ceting%C3%B6z-249370255",
+      "summary": "Software Engineer | Building AI &amp; Data-Intensive Systems | Python, GCP · As a software engineer, I&#39;m passionate about building the high-performance, data-intensive systems that power modern AI and machine learning applications. With a background spanning from embedded systems to scalable cloud architectures, my expertise covers the entire development lifecycle: from initial concept and ML pipeline implementation to production deployment.\n\nI have proven this by co-founding an AI startup and by architecting a time-series forecasting model for complex logistics. I don&#39;t just think in terms of models; I think in terms of the reliable and scalable infrastructure that makes them work.\n\nMy analytical mindset and data-driven approach led me early to the financial markets, where I actively research, develop, and test algorithmic trading approaches on live accounts.\n\nI am now looking to merge these two worlds. I am seeking a role within the finance industry where I can apply my end-to-end development exper",
+      "current_position": "Software Engineer | Python, GCP",
+      "raw_data": {
+        "title": "Tolga Cetingöz – Software Engineer | Python, GCP",
+        "structured_data": {
+          "current_position": "Software Engineer",
+          "snippet_title": "Software Engineer",
+          "snippet_location": "Python, GCP"
+        }
+      }
+    },
+    {
+      "name": "Zhi Wei Lee",
+      "profile_url": "https://sg.linkedin.com/in/zhi-wei-lee",
+      "summary": "Software Engineer @ Dell Technologies | Edge Solutions · Experienced Software Engineer with a demonstrated history of working in the automotive industry. Skilled in Python, C++ and Computer Vision. Strong engineering professional with a Master of Science - MS in Aerospace Engineering from University of Stuttgart, Germany. · Experience: Dell Technologies · Education: University of Stuttgart · Location: Singapore · 222 connections on LinkedIn. View Zhi Wei Lee’s profile on LinkedIn, a professional community of 1 billion members.",
+      "current_position": "Software Engineer @ Dell Technologies | Edge ...",
+      "raw_data": {
+        "title": "Zhi Wei Lee - Software Engineer @ Dell Technologies | Edge ...",
+        "structured_data": {
+          "current_position": "Software Engineer @ Dell Technologies",
+          "company": "Dell Technologies",
+          "location": "Singapore",
+          "snippet_title": "Software Engineer"
+        }
+      }
+    },
+    {
+      "name": "Jimmy George Kannadan",
+      "profile_url": "https://in.linkedin.com/in/jimmy-george-k",
+      "summary": "Data Analyst | SQL, Python, Tableau Expert | Driving Data-Driven Decisions &amp; Business Efficiency | Master’s in Software Technology · I am a passionate and results-driven Data Analyst currently pursuing my Master’s in Software Technology at Hochschule für Technik Stuttgart, Germany. My academic journey includes a Bachelor’s degree in Information Science &amp; Engineering, where I graduated with a strong focus on data analysis, machine learning, and software development. My master’s thesis, starting in March 2025, will explore the design and implementation of cryptographic solutions for protecting smart city sensor data, reflecting my interest in cutting-edge technologies and data security.\n\nIn my professional career, I have gained valuable experience as a Data Analyst and Associate Software Engineer, working with companies like Sasken Technologies and Whitefield Motors in Bangalore, India. I specialize in SQL, Python, and Tableau, and have a proven track record of cleaning, analyzing, and visuali",
+      "current_position": "Data Analyst | SQL, Python, Tableau ...",
+      "raw_data": {
+        "title": "Jimmy George Kannadan - Data Analyst | SQL, Python, Tableau ...",
+        "snippet": "I am a passionate and results-driven Data Analyst currently pursuing my Master's in Software Technology at Hochschule für Technik Stuttgart, Germany.",
+        "structured_data": {
+          "current_position": "Data Analyst",
+          "company": "companies like Sasken Technologies and Whitefield Motors in Bangalore",
+          "location": "Stuttgart",
+          "snippet_location": "Technik Stuttgart, Germany"
+        }
+      }
+    },
+    {
+      "name": "Zubair Asif",
+      "profile_url": "https://linkedin.com/in/zubair-asif",
+      "summary": "R&amp;D Engineer | FEA &amp; Structural Validation – Airbus Projects | HyperMesh • Nastran • Abaqus • Python | Composites | Computational Mechanics (MSc, Uni Stuttgart) · I am a Research &amp; Development Engineer with over 3 years of experience in aerospace structural validation, primarily supporting Airbus programs via Capgemini Engineering.\n\nMy expertise lies in Finite Element Analysis (FEA) using HyperMesh, Nastran, and Abaqus, with a focus on both linear and non-linear analysis. I’ve worked extensively on secondary aircraft structures, including doors, sidewalls, rails, ceilings, and raft assemblies.\n\nI also specialize in automation and data processing, developing tools in Python and Excel VBA to streamline analysis workflows and reporting.\n\n🔹 Key Achievements\n• Delivered certified FEA results directly to Airbus\n• Mentored and onboarded 15+ engineers\n• Led validation tasks independently and in cross-functional teams\n• Coordinated closely with design teams to support design feasibili",
+      "current_position": "R&D Engineer | HyperMesh • Nastran • Abaqus • Python",
+      "raw_data": {
+        "title": "Zubair Asif – R&D Engineer | HyperMesh • Nastran • Abaqus • Python",
+        "snippet": "... Python | Composites | Computational Mechanics (MSc, Uni Stuttgart). Capgemini ... * Execution of software tests to assess the stability/reliability of the program ...",
+        "structured_data": {
+          "current_position": "R&amp;D Engineer",
+          "location": "Stuttgart)",
+          "snippet_location": "MSc, Uni Stuttgart"
+        }
+      }
+    },
+    {
+      "name": "Joshua Aditya Joseph",
+      "profile_url": "https://in.linkedin.com/in/joshua-aditya-joseph-a95692170",
+      "summary": "Student at University of Stuttgart · I’m Joshua, a Master’s student in Computer Science at the University of Stuttgart, with a strong foundation in software engineering and a passion for building smart systems. Before moving to Germany, I worked as a Software Engineer at Tally Solutions, where I gained hands-on experience with technologies like React, Django, Angular, and Salesforce.\n\nI graduated with honors in Artificial Intelligence from Christ University in 2023, where I built projects using Python, Java, C, and C#, alongside frameworks like TensorFlow, OpenCV, and Django for backend and ML solutions. I’ve also explored game development during an internship at The Learning Buddy using Unity and C#.\n\nMy journey has been shaped by a love for problem-solving, leadership experiences (as a University Student Council member), and teamwork.\n\nI’m currently looking for part-time roles, internships, or working student positions in AI, software development, or robotics while I pursue my studies here in Germa",
+      "current_position": "Student at University of Stuttgart",
+      "raw_data": {
+        "title": "Joshua Aditya Joseph - Student at University of Stuttgart | LinkedIn",
+        "snippet": "Before moving to Germany, I worked as a Software Engineer at Tally Solutions ... Python, Java, C, and C#, alongside frameworks like TensorFlow, OpenCV ...",
+        "structured_data": {
+          "current_position": "Student at University of Stuttgart",
+          "company": "Tally Solutions",
+          "location": "Stuttgart",
+          "snippet_title": "Software Engineer",
+          "snippet_location": "Before moving to Germany"
+        }
+      }
+    }
+  ],
+  "extraction_stats": {
+    "successful_extractions": 20,
+    "failed_extractions": 0,
+    "duplicate_profiles_removed": 0,
+    "total_profiles": 20,
+    "valid_profiles": 20,
+    "invalid_profiles": 0,
+    "validation_errors": []
+  }
+}
