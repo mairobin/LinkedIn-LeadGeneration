@@ -1,6 +1,7 @@
 import re
 import logging
 import json
+import html
 from datetime import datetime
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
@@ -400,6 +401,16 @@ class LinkedInDataExtractor:
             clean_url = clean_url.replace('www.linkedin.com', 'linkedin.com')
             if not clean_url.startswith('https://'):
                 clean_url = clean_url.replace('http://', 'https://')
+            # Drop trailing locale or extra segments after slug
+            try:
+                parsed2 = urlparse(clean_url)
+                path = (parsed2.path or '').rstrip('/')
+                parts = [p for p in path.split('/') if p]
+                if len(parts) >= 2 and parts[0] == 'in':
+                    slug = parts[1]
+                    return f"https://linkedin.com/in/{slug}"
+            except Exception:
+                pass
             return clean_url
 
         return None
@@ -494,6 +505,60 @@ class LinkedInDataExtractor:
                         return headline
 
         return None
+
+    def _remove_linkedin_boilerplate(self, text: Optional[str]) -> Optional[str]:
+        """Remove LinkedIn boilerplate sentences like
+        "View John Doe’s profile on LinkedIn, a professional community of 1 billion members."
+        and localized variants from provided text.
+
+        The function preserves other content and normalizes whitespace.
+        """
+        if not text or not isinstance(text, str):
+            return text
+
+        cleaned = text
+
+        patterns = [
+            # English variants with straight or curly apostrophes
+            r"View [^\n\.!?]{1,200}?’s profile on LinkedIn[^\.!?\n]*[\.!?]",
+            r"View [^\n\.!?]{1,200}?'s profile on LinkedIn[^\.!?\n]*[\.!?]",
+            r"View [^\n\.!?]{1,200}? profile on LinkedIn, a professional community of [^\.!?\n]*[\.!?]",
+            # German common snippet variant
+            r"Sehen Sie sich das Profil von [^\n\.!?]{1,200}? auf LinkedIn[^\.!?\n]*[\.!?]",
+        ]
+
+        for pattern in patterns:
+            try:
+                cleaned = re.sub(pattern, " ", cleaned, flags=re.IGNORECASE)
+            except re.error:
+                # In case of a regex error, skip that pattern
+                continue
+
+        # Collapse excessive whitespace and normalize newlines
+        cleaned = re.sub(r"[ \t\u00A0]{2,}", " ", cleaned)
+        cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+        cleaned = cleaned.strip()
+
+        return cleaned
+
+    def _normalize_text_basic(self, text: Optional[str]) -> Optional[str]:
+        """Decode HTML entities, remove list bullets, normalize whitespace and tabs."""
+        if not text or not isinstance(text, str):
+            return text
+
+        # Decode HTML entities like &amp;
+        normalized = html.unescape(text)
+
+        # Replace tabs and non-breaking spaces
+        normalized = normalized.replace('\t', ' ').replace('\u00A0', ' ')
+
+        # Remove common bullet characters when they are used as prefixes
+        normalized = re.sub(r"^[\s]*[\-\*•·–—›>\u2022\u2023\u25E6\u2043\u2219]+\s*", "", normalized, flags=re.MULTILINE)
+
+        # Collapse multiple spaces
+        normalized = re.sub(r"[ ]{2,}", " ", normalized)
+
+        return normalized.strip()
 
     def extract_basic_info_from_snippet(self, snippet: str) -> Dict[str, Optional[str]]:
         """Extract basic information from the Google search snippet."""
@@ -646,6 +711,8 @@ class LinkedInDataExtractor:
         title = google_result.get('title', '')
         link = google_result.get('link', '')
         snippet = google_result.get('snippet', '')
+        # Clean LinkedIn boilerplate from snippet early
+        snippet = self._remove_linkedin_boilerplate(snippet)
 
         # Clean and validate LinkedIn URL
         linkedin_url = self.clean_linkedin_url(link)
@@ -680,6 +747,8 @@ class LinkedInDataExtractor:
         metatags_info = self.extract_profile_info_from_metatags(metatags)
         snippet_info = self.extract_basic_info_from_snippet(snippet)
         summary = metatags_info.get('description') or snippet_info.get('description') or snippet
+        # Clean LinkedIn boilerplate and normalize summary
+        summary = self._normalize_text_basic(self._remove_linkedin_boilerplate(summary))
 
         # Use AI extraction if available, otherwise preserve raw data
         if self.use_ai and self.ai_extractor:
@@ -725,6 +794,9 @@ class LinkedInDataExtractor:
                 profile_data['connection_count'] = connection_count.strip()
             # Parse summary-derived fields (email, website, phone, experience_years, summary_other)
             parsed_summary = self._extract_from_summary(summary)
+            # Normalize summary_other if present
+            if 'summary_other' in parsed_summary and isinstance(parsed_summary['summary_other'], list):
+                parsed_summary['summary_other'] = self._clean_summary_other(parsed_summary['summary_other'])
             profile_data.update(parsed_summary)
 
         else:
@@ -768,12 +840,32 @@ class LinkedInDataExtractor:
 
             # Parse summary-derived fields (email, website, phone, experience_years, summary_other)
             parsed_summary = self._extract_from_summary(summary)
+            # Normalize summary_other if present
+            if 'summary_other' in parsed_summary and isinstance(parsed_summary['summary_other'], list):
+                parsed_summary['summary_other'] = self._clean_summary_other(parsed_summary['summary_other'])
             profile_data.update(parsed_summary)
 
         self.extraction_stats['successful_extractions'] += 1
         logging.debug(f"Successfully extracted profile: {name}")
 
         return profile_data
+
+    def _clean_summary_other(self, items: List[str]) -> List[str]:
+        """Clean list of summary_other sentences: remove boilerplate, bullets, html entities, and empties."""
+        cleaned_items: List[str] = []
+        seen = set()
+        for s in items:
+            if not s or not isinstance(s, str):
+                continue
+            txt = self._normalize_text_basic(self._remove_linkedin_boilerplate(s))
+            # Drop trivial single bullet markers or dangling punctuation
+            if not txt or len(txt) < 2:
+                continue
+            # Deduplicate preserving order
+            if txt not in seen:
+                seen.add(txt)
+                cleaned_items.append(txt)
+        return cleaned_items[:5]
 
     def _extract_from_summary(self, summary_text: str) -> Dict[str, Optional[str]]:
         """Extract email, website, phone number, years of experience, and summary_other from summary text.
@@ -1000,10 +1092,25 @@ class LinkedInDataExtractor:
         return profiles
 
     def enhance_profiles_with_websites(self, profiles: List[Dict]) -> List[Dict]:
-        """Enhance profiles with company website information."""
+        """Enhance profiles with company domain information (derive apex domain)."""
         if not self.use_ai or not self.ai_extractor:
-            logging.warning("AI extractor not available for website enhancement")
+            logging.warning("AI extractor not available for domain enhancement")
             return profiles
+
+        def _extract_apex_domain(url_or_domain: Optional[str]) -> Optional[str]:
+            if not url_or_domain:
+                return None
+            try:
+                import tldextract
+                text = str(url_or_domain).strip().lower()
+                if not text.startswith('http://') and not text.startswith('https://'):
+                    text = f"http://{text}"
+                ext = tldextract.extract(text)
+                if ext.domain and ext.suffix:
+                    return f"{ext.domain}.{ext.suffix}"
+                return None
+            except Exception:
+                return None
 
         enhanced_profiles = []
         for profile in profiles:
@@ -1015,8 +1122,10 @@ class LinkedInDataExtractor:
             if company:
                 website = self.ai_extractor.get_company_website(company, location)
                 if website:
-                    enhanced_profile['company_website'] = website
-                    logging.debug(f"Found website for {company}: {website}")
+                    domain = _extract_apex_domain(website)
+                    if domain:
+                        enhanced_profile['company_domain'] = domain
+                        logging.debug(f"Derived apex domain for {company}: {domain}")
 
             enhanced_profiles.append(enhanced_profile)
 

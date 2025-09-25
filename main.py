@@ -97,7 +97,86 @@ Examples:
         help='Include raw Google search results in output for evaluation and debugging'
     )
 
+    # Database options
+    parser.add_argument(
+        '--write-db',
+        action='store_true',
+        help='Write normalized people/companies to SQLite (default: off)'
+    )
+    parser.add_argument(
+        '--db-path',
+        type=str,
+        default='leads.db',
+        help='Path to SQLite database file (default: leads.db)'
+    )
+
+    
+
     return parser.parse_args()
+
+
+def _parse_int_shorthand(value):
+    """Parse strings like '1.2K', '3M', '4500', '500+' into an integer."""
+    if value is None:
+        return None
+    try:
+        s = str(value).strip().upper()
+        if not s:
+            return None
+        if s.endswith('+'):
+            s = s[:-1]
+        import re as _re
+        m = _re.match(r"^([0-9]+(?:\.[0-9]+)?)([KMB]?)$", s)
+        if m:
+            num = float(m.group(1))
+            suf = m.group(2)
+            factor = 1
+            if suf == 'K':
+                factor = 1000
+            elif suf == 'M':
+                factor = 1000000
+            elif suf == 'B':
+                factor = 1000000000
+            return int(round(num * factor))
+        digits = ''.join(ch for ch in s if ch.isdigit())
+        return int(digits) if digits else None
+    except Exception:
+        return None
+
+
+def _parse_connections(value):
+    parsed = _parse_int_shorthand(value)
+    if parsed is None:
+        return None
+    return min(parsed, 500)
+
+
+def map_to_person_schema(profiles, lookup_date):
+    """Map extracted profiles to the Person schema (inline, simple)."""
+    mapped = []
+    for p in profiles:
+        mapped.append({
+            'Contact_Name': p.get('name') or '',
+            'LinkedIn_Profile': p.get('profile_url') or None,
+            'Company': p.get('company') or None,
+            'Company_Website': None,
+            'Company_Domain': p.get('company_domain') or None,
+            'Location': p.get('location') or None,
+            'Position': p.get('current_position') or None,
+            'Connections_LinkedIn': _parse_connections(p.get('connection_count')) if p.get('connection_count') is not None else None,
+            'Followers_LinkedIn': _parse_int_shorthand(p.get('follower_count')) if p.get('follower_count') is not None else None,
+            'Website_Info': None,
+            'Phone_Info': p.get('phone') or '',
+            'Info_raw': p.get('summary') or '',
+            'Insights': p.get('summary_other') if isinstance(p.get('summary_other'), list) else [],
+            'Email': p.get('email') or None,
+            'Lookup_Date': lookup_date or None,
+            'Hot': False,
+            'Last_Interaction_Date': None,
+            'Status': None,
+            'Notes': [],
+        })
+    return mapped
 
 
 def ensure_output_directory():
@@ -256,8 +335,12 @@ def main():
         # Include raw search results if requested
         raw_results = search_results if args.include_raw_results else None
 
+        # Transform profiles to new Person schema for output
+        lookup_date = datetime.utcnow().strftime('%Y-%m-%d')
+        transformed_profiles = map_to_person_schema(cleaned_profiles, lookup_date)
+
         output_data = validator.format_output_structure(
-            cleaned_profiles, search_metadata, combined_stats, api_usage, raw_results
+            transformed_profiles, search_metadata, combined_stats, api_usage, raw_results
         )
 
         # Save results
@@ -266,6 +349,23 @@ def main():
 
         # Print summary
         print_summary(output_data, api_usage, output_path)
+
+        # Optional: write normalized tables (people + companies) and link by domain
+        if args.write_db:
+            try:
+                from db.connection import get_connection
+                from db import schema as _schema
+                from pipelines.ingest_profiles import ingest_profiles
+
+                conn = get_connection(args.db_path)
+                _schema.bootstrap(conn)
+                # Use the already transformed person schema for ingestion
+                processed = ingest_profiles(conn, transformed_profiles)
+                logging.info(f"Normalized DB write complete: {processed} profiles processed → people/companies")
+            except Exception as _e:
+                logging.error(f"DB write failed: {_e}")
+
+        
 
         logging.info("Data collection completed successfully")
 
