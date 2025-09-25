@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional
+import unicodedata
 
 
 def extract_apex_domain(url_or_domain: Optional[str]) -> Optional[str]:
@@ -23,7 +24,7 @@ def normalize_linkedin_profile_url(url: Optional[str]) -> Optional[str]:
     if not url:
         return None
     try:
-        from urllib.parse import urlparse
+        from urllib.parse import urlparse, unquote
         u = urlparse(url)
         host = (u.netloc or '').lower().replace('www.', '').replace('de.linkedin.com', 'linkedin.com')
         path = (u.path or '').rstrip('/')
@@ -35,6 +36,11 @@ def normalize_linkedin_profile_url(url: Optional[str]) -> Optional[str]:
         parts = [p for p in path.split('/') if p]
         if len(parts) >= 2 and parts[0] == 'in':
             slug = parts[1]
+            # Decode percent-encoding and normalize Unicode; canonicalize to lowercase
+            slug = unquote(slug)
+            slug = unicodedata.normalize('NFKC', slug).strip().lower()
+            # Remove invisible characters occasionally present
+            slug = slug.replace('\u200b', '').replace('\u200c', '').replace('\u200d', '')
             return f"https://linkedin.com/in/{slug}"
         return f"https://linkedin.com{path}"
     except Exception:

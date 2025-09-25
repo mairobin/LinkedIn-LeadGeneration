@@ -11,6 +11,8 @@ class CompaniesRepo:
     def upsert_by_domain(self, name: Optional[str], domain: Optional[str], website: Optional[str]) -> int:
         # Manual upsert to avoid relying on UNIQUE constraint semantics
         cur = self.conn.cursor()
+        # Ensure we never insert a NULL name to satisfy stricter schemas
+        safe_name = name or domain or "Unknown Company"
         if domain:
             cur.execute("SELECT id, name, website FROM companies WHERE domain = ?", (domain,))
             row = cur.fetchone()
@@ -19,19 +21,19 @@ class CompaniesRepo:
                 # Update minimal fields when provided
                 cur.execute(
                     "UPDATE companies SET name = COALESCE(?, name), website = COALESCE(?, website) WHERE id = ?",
-                    (name, website, company_id),
+                    (safe_name, website, company_id),
                 )
                 self.conn.commit()
                 return company_id
             # Insert new with domain
             cur.execute(
                 "INSERT INTO companies (name, domain, website) VALUES (?, ?, ?)",
-                (name, domain, website),
+                (safe_name, domain, website),
             )
             self.conn.commit()
             return int(cur.lastrowid)
         # No domain yet: insert a stub with name only (duplicates allowed)
-        cur.execute("INSERT INTO companies (name) VALUES (?)", (name,))
+        cur.execute("INSERT INTO companies (name) VALUES (?)", (safe_name,))
         self.conn.commit()
         return int(cur.lastrowid)
 
@@ -54,7 +56,8 @@ class CompaniesRepo:
                 if key.endswith("_json") and isinstance(fields[key], (list, dict)):
                     columns.append(f"{key} = json(?)")
                     import json as _json
-                    values.append(_json.dumps(fields[key]))
+                    # Preserve non-ASCII characters (e.g., umlauts) in stored JSON text
+                    values.append(_json.dumps(fields[key], ensure_ascii=False))
                 else:
                     columns.append(f"{key} = ?")
                     values.append(fields[key])

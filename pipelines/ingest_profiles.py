@@ -38,6 +38,36 @@ def ingest_profiles(conn: sqlite3.Connection, profiles: Iterable[Dict]) -> int:
         email = p.get('Email') or p.get('email')
         location = p.get('Location') or p.get('location')
 
+        # Parse counts if present
+        def _to_int(value):
+            try:
+                return int(value) if value is not None else None
+            except Exception:
+                return None
+
+        connections = p.get('Connections_LinkedIn') or p.get('connection_count')
+        followers = p.get('Followers_LinkedIn') or p.get('follower_count')
+        try:
+            from ..main import _parse_connections, _parse_int_shorthand  # type: ignore
+            connections_val = _parse_connections(connections)
+            followers_val = _parse_int_shorthand(followers)
+        except Exception:
+            connections_val = _to_int(connections)
+            followers_val = _to_int(followers)
+
+        # Additional personal fields
+        website_info = p.get('Website_Info') or p.get('company_website') or p.get('website')
+        phone_info = p.get('Phone_Info') or p.get('phone')
+        info_raw = p.get('Info_raw') or p.get('summary')
+        insights_val = p.get('Insights') or p.get('summary_other')
+        if isinstance(insights_val, list):
+            insights_text = "; ".join([str(x) for x in insights_val if x])
+        elif isinstance(insights_val, str):
+            insights_text = insights_val
+        else:
+            insights_text = None
+        lookup_date = p.get('Lookup_Date')
+
         person_id = people.upsert_person(
             linkedin_profile=profile_url,
             first_name=first,
@@ -45,6 +75,13 @@ def ingest_profiles(conn: sqlite3.Connection, profiles: Iterable[Dict]) -> int:
             title_current=title,
             email=email,
             location_text=location,
+            connections_linkedin=connections_val,
+            followers_linkedin=followers_val,
+            website_info=website_info,
+            phone_info=phone_info,
+            info_raw=info_raw,
+            insights_text=insights_text,
+            lookup_date=lookup_date,
         )
 
         # Determine apex domain
@@ -62,6 +99,7 @@ def ingest_profiles(conn: sqlite3.Connection, profiles: Iterable[Dict]) -> int:
         processed += 1
 
     return processed
+
 
 
 

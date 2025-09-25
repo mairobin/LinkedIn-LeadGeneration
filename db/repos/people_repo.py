@@ -16,20 +16,36 @@ class PeopleRepo:
         title_current: Optional[str],
         email: Optional[str],
         location_text: Optional[str],
+        connections_linkedin: Optional[int] = None,
+        followers_linkedin: Optional[int] = None,
+        website_info: Optional[str] = None,
+        phone_info: Optional[str] = None,
+        info_raw: Optional[str] = None,
+        insights_text: Optional[str] = None,
+        lookup_date: Optional[str] = None,
     ) -> int:
         sql = (
-            "INSERT INTO people (linkedin_profile, first_name, last_name, title_current, email, location_text) "
-            "VALUES (?, ?, ?, ?, ?, ?) "
+            "INSERT INTO people (linkedin_profile, first_name, last_name, title_current, email, location_text, connections_linkedin, followers_linkedin, website_info, phone_info, info_raw, insights_text, lookup_date) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, datetime('now'))) "
             "ON CONFLICT(linkedin_profile) DO UPDATE SET "
             " first_name = COALESCE(excluded.first_name, people.first_name), "
             " last_name = COALESCE(excluded.last_name, people.last_name), "
             " title_current = COALESCE(excluded.title_current, people.title_current), "
             " email = COALESCE(excluded.email, people.email), "
-            " location_text = COALESCE(excluded.location_text, people.location_text) "
+            " location_text = COALESCE(excluded.location_text, people.location_text), "
+            " connections_linkedin = COALESCE(excluded.connections_linkedin, people.connections_linkedin), "
+            " followers_linkedin = COALESCE(excluded.followers_linkedin, people.followers_linkedin), "
+            " website_info = COALESCE(excluded.website_info, people.website_info), "
+            " phone_info = COALESCE(excluded.phone_info, people.phone_info), "
+            " info_raw = COALESCE(excluded.info_raw, people.info_raw), "
+            " insights_text = COALESCE(excluded.insights_text, people.insights_text), "
+            " lookup_date = COALESCE(excluded.lookup_date, people.lookup_date) "
             "RETURNING id;"
         )
         cur = self.conn.cursor()
-        cur.execute(sql, (linkedin_profile, first_name, last_name, title_current, email, location_text))
+        cur.execute(sql, (
+            linkedin_profile, first_name, last_name, title_current, email, location_text, connections_linkedin, followers_linkedin, website_info, phone_info, info_raw, insights_text, lookup_date
+        ))
         row = cur.fetchone()
         return int(row[0])
 
@@ -37,6 +53,7 @@ class PeopleRepo:
         sql = "UPDATE people SET company_id = ? WHERE linkedin_profile = ?;"
         self.conn.execute(sql, (company_id, linkedin_profile))
         self.conn.commit()
+
 
 
 

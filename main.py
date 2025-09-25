@@ -180,40 +180,22 @@ def map_to_person_schema(profiles, lookup_date):
 
 
 def ensure_output_directory():
-    """Create output directory if it doesn't exist."""
-    output_dir = Path(RAW_OUTPUT_DIR)
-    output_dir.mkdir(exist_ok=True)
-    return output_dir
+    """(Deprecated) No-op: JSON file creation removed in favor of console output."""
+    return Path(RAW_OUTPUT_DIR)
 
 
 def generate_output_filename(custom_filename: str = None) -> str:
-    """Generate output filename with timestamp."""
-    if custom_filename:
-        if not custom_filename.endswith('.json'):
-            custom_filename += '.json'
-        return custom_filename
-
+    """(Deprecated) Kept for backwards-compatibility; files are no longer written."""
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    return f'raw_leads_{timestamp}.json'
+    return custom_filename or f'raw_leads_{timestamp}.json'
 
 
 def save_results(data: dict, filename: str, output_dir: Path) -> Path:
-    """Save results to JSON file."""
-    output_path = output_dir / filename
-
-    try:
-        with open(output_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-
-        logging.info(f"Results saved to: {output_path}")
-        return output_path
-
-    except Exception as e:
-        logging.error(f"Failed to save results: {e}")
-        raise
+    """(Deprecated) Disabled: no file writes. Returns a dummy path."""
+    return output_dir / filename
 
 
-def print_summary(data: dict, api_usage: dict, output_path: Path):
+def print_summary(data: dict, api_usage: dict, output_path: Path = None):
     """Print summary of the extraction process."""
     metadata = data.get('metadata', {})
     extraction_stats = data.get('extraction_stats', {})
@@ -234,7 +216,8 @@ def print_summary(data: dict, api_usage: dict, output_path: Path):
     print(f"  Invalid Profiles: {extraction_stats.get('invalid_profiles', 0)}")
     print()
     print(f"API Usage: {api_usage.get('estimated_daily_limit_used', 'N/A')}")
-    print(f"Output File: {output_path}")
+    if output_path:
+        print(f"Output File: {output_path}")
     print("="*60)
 
 
@@ -343,12 +326,8 @@ def main():
             transformed_profiles, search_metadata, combined_stats, api_usage, raw_results
         )
 
-        # Save results
-        filename = generate_output_filename(args.output)
-        output_path = save_results(output_data, filename, output_dir)
-
-        # Print summary
-        print_summary(output_data, api_usage, output_path)
+        # Print summary to console (no JSON file written)
+        print_summary(output_data, api_usage)
 
         # Optional: write normalized tables (people + companies) and link by domain
         if args.write_db:
@@ -362,6 +341,12 @@ def main():
                 # Use the already transformed person schema for ingestion
                 processed = ingest_profiles(conn, transformed_profiles)
                 logging.info(f"Normalized DB write complete: {processed} profiles processed → people/companies")
+                # Print a concise preview of top 5 leads
+                preview = output_data.get('profiles', [])[:5]
+                if preview:
+                    print("Top 5 leads:")
+                    for p in preview:
+                        print(f"- {p.get('Contact_Name') or p.get('name')} | {p.get('LinkedIn_Profile') or p.get('profile_url')} | {p.get('Position') or p.get('current_position')} | {p.get('Company') or p.get('company')}")
             except Exception as _e:
                 logging.error(f"DB write failed: {_e}")
 

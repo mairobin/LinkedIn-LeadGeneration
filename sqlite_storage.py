@@ -94,12 +94,12 @@ class SQLiteStorage:
             "    Status TEXT",
             "    Notes TEXT",
         ])
-        create_sql = f"
+        create_sql = f"""
 CREATE TABLE IF NOT EXISTS {self.table_name} (
 {columns_sql},
     CONSTRAINT uq_profile UNIQUE (LinkedIn_Profile)
 );
-".strip()
+""".strip()
         self._conn.execute(create_sql)
         # Add Company_Domain column if missing (safe, idempotent)
         try:

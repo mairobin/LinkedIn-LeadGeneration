@@ -4,34 +4,50 @@ A Python tool that searches Google for LinkedIn profiles and extracts structured
 
 ## Purpose
 
-This tool helps businesses and recruiters collect LinkedIn profile data at scale by:
-- Searching for LinkedIn profiles using specific criteria (job titles, locations, skills)
-- Extracting structured profile information automatically
-- Finding company websites with cost-optimized AI search
-- Validating and cleaning extracted data
-- Exporting results in JSON format for further processing
+This project has grown from a basic LinkedIn profile finder into a small data platform for prospecting. It now provides:
+- **Profile discovery**: Google Custom Search finds `linkedin.com/in/` profiles via targeted queries.
+- **Structured extraction**: Scrapes snippets and optionally uses AI to extract names, titles, counts, and context.
+- **Normalization + storage**: Loads people and companies into a normalized SQLite database with indexes and views.
+- **Company enrichment**: Enriches companies via OpenAI or Linkup into a consistent JSON schema (industries, size, website, legal form, etc.).
+- **Utilities and reports**: CLI commands to bootstrap the DB, ingest JSON, run enrichment, deduplicate people, and produce reports.
+- **Cost-aware design**: AI is optional; default flows are non-AI to minimize cost while keeping quality.
 
 ## Project Structure
 
 ```
 .
-├── main.py              # Main entry point and CLI interface
-├── google_searcher.py   # Google Custom Search API integration
-├── data_extractor.py    # LinkedIn profile data extraction logic
-├── data_validator.py    # Data validation and cleaning utilities
-├── config.py           # Configuration settings and constants
-├── requirements.txt    # Python dependencies
-├── .env.template       # Environment variables template
-└── output/            # Generated JSON files directory
+├── cli.py                     # DB-focused CLI: bootstrap, ingest, enrich, reports, dedupe
+├── main.py                    # Search + extraction runner (JSON output; optional AI)
+├── google_searcher.py         # Google Custom Search API integration
+├── data_extractor.py          # Extraction and heuristic parsing from snippets/meta
+├── data_validator.py          # Validation utilities (dedupe/quality)
+├── services/
+│   ├── enrichment_service.py  # OpenAI/Linkup enrichment, prompt loading
+│   └── domain_utils.py        # URL/domain and LinkedIn URL normalization helpers
+├── pipelines/
+│   ├── ingest_profiles.py     # Normalize and upsert people + link to companies
+│   └── enrich_companies.py    # Batch enrichment and persistence
+├── db/
+│   ├── connection.py          # SQLite connection with pragmas
+│   ├── schema.py              # Tables, indexes, views; idempotent bootstrap
+│   └── repos/
+│       ├── people_repo.py     # Person upsert/link operations
+│       └── companies_repo.py  # Company upsert/enrichment updates
+├── prompts/
+│   └── enrichment_prompt.txt  # Structured enrichment instructions
+├── sqlite_storage.py          # Snapshot table storage utility
+├── requirements.txt           # Python dependencies
+├── .env.template              # Environment variables template
+└── output/                    # Legacy/optional output directory (no files by default)
 ```
 
-### File Descriptions
+### File Highlights
 
-- **`main.py`** - Command-line interface and orchestration logic
-- **`google_searcher.py`** - Handles Google Custom Search API requests to find LinkedIn profiles
-- **`data_extractor.py`** - Scrapes LinkedIn profile pages, extracts structured data, and finds company websites
-- **`data_validator.py`** - Validates extracted data, removes duplicates, and ensures data quality
-- **`config.py`** - Contains all configuration settings, API keys, and validation rules
+- **`cli.py`** - Database-centric commands (bootstrap, ingest JSON, enrich, reports, dedupe)
+- **`main.py`** - Search/extract runner; writes JSON (no DB unless used via CLI ingest)
+- **`services/enrichment_service.py`** - Calls OpenAI/Linkup using `prompts/enrichment_prompt.txt`
+- **`pipelines/ingest_profiles.py`** - Normalizes person/company and sets `lookup_date` automatically
+- **`pipelines/enrich_companies.py`** - Saves enrichment and normalizes legal forms
 
 ## Setup
 
@@ -57,6 +73,32 @@ This tool helps businesses and recruiters collect LinkedIn profile data at scale
    - Get your API key from [Google Cloud Console](https://console.cloud.google.com/)
 
 ## Usage
+
+### Database quickstart (must-have flow)
+
+```bash
+# 1) Bootstrap normalized schema (tables, indexes, views)
+python cli.py bootstrap
+
+# 2) Run a scrape and write normalized people+companies
+python main.py --query "CEO Berlin" --max-results 5 --write-db --db-path leads.db
+
+# 3) Verify recent joined rows
+python cli.py report-recent --limit 5 --db leads.db
+
+# 4) Spot-check a specific LinkedIn profile (paste URL from recent output)
+python cli.py report-person --profile https://linkedin.com/in/example --db leads.db
+
+# 5) Enrichment: stub, OpenAI, or Linkup
+# Stub (no network):
+python cli.py enrich --db leads.db --limit 20
+
+# OpenAI (requires OPENAI_API_KEY in .env):
+python cli.py enrich --db leads.db --use-ai --limit 20 --progress
+
+# Linkup (requires LINKUP_API_KEY in env):
+python cli.py enrich --db leads.db --use-linkup --limit 20 --progress
+```
 
 ### Basic Search (No AI - Default)
 ```bash
@@ -85,73 +127,85 @@ python main.py --query "CEO" --include-raw-results --max-results 10
 python main.py --query "Engineer" --log-level DEBUG
 ```
 
-## Output Format
+## Output
 
-Results are saved as JSON files in the `output/` directory:
+By default the tool prints a human-readable summary to the console (no files are written). Example:
 
-```json
-{
-  "profiles": [
-    {
-      "name": "John Doe",
-      "profile_url": "https://linkedin.com/in/johndoe",
-      "current_position": "Senior Software Engineer",
-      "company": "Tech Corp",
-      "company_website": "https://techcorp.com",
-      "location": "Berlin, Germany",
-      "summary": "Experienced software engineer specializing in...",
-      "follower_count": "1,234",
-      "connection_count": "500+",
-      "email": "john.doe@example.com",
-      "website": "https://johndoe.dev",
-      "phone": "+49 123 4567890",
-      "experience_years": 10,
-      "summary_other": [
-        "Scaled platform to 3M MAU",
-        "Open-source contributor at AwesomeProject"
-      ]
-    }
-  ],
-  "metadata": {
-    "search_query": "site:linkedin.com/in/ Software Engineer Berlin",
-    "search_terms": ["Software", "Engineer", "Berlin"],
-    "total_results": 25,
-    "api_calls_used": 3,
-    "generated_at": "2024-09-22T10:30:00Z"
-  },
-  "extraction_stats": {
-    "successful_extractions": 23,
-    "failed_extractions": 2,
-    "duplicate_profiles_removed": 1,
-    "valid_profiles": 22,
-    "invalid_profiles": 1
-  },
-  "api_usage": {
-    "estimated_daily_limit_used": "0.3%"
-  }
-}
+```
+============================================================
+LINKEDIN LEAD GENERATION - SUMMARY
+============================================================
+Search Query: site:linkedin.com/in/ "Software Engineer" Berlin
+Total Results: 25
+API Calls Made: 3
+Generated At: 2025-09-25T10:30:00Z
+
+Extraction Statistics:
+  Successful Extractions: 23
+  Failed Extractions: 2
+  Duplicates Removed: 1
+  Valid Profiles: 22
+  Invalid Profiles: 1
+
+API Usage: 3
+============================================================
+```
+
+If you pass `--write-db`, normalized data is written to SQLite. Use CLI reports to inspect data:
+
+- Recent list:
+```bash
+python cli.py report-recent --limit 5 --db leads.db
+```
+
+- Single person (joined with company):
+```bash
+python cli.py report-person --profile https://linkedin.com/in/example --db leads.db
 ```
 
 ## Features
 
+### Enrichment and Normalization
+- **Company enrichment**: Produces a consistent schema: `Company`, `Legal_Form`, `Industries`, `Locations_Germany`, `Multinational`, `Website`, `Size_Employees`, `Business_Model_Key_Points`, `Products_and_Services`, `Recent_News`.
+- **Legal form handling**: Prefers concise suffix from company name (e.g., `GmbH`, `AG`, `GmbH & Co. KG`); normalizes messy values like `GmbH (Germany)` → `GmbH`.
+- **People `lookup_date`**: Automatically set at insert to the current UTC date, and backfilled for existing rows.
+
 ### Cost-Optimized Website Discovery
-**Only available with `--use-ai` flag.** The tool automatically finds company websites using a three-tier approach:
+When `--use-ai` is enabled, website discovery follows a staged approach:
+1. Domain prediction (free)
+2. Knowledge-based AI (cheap)
+3. Web search AI (fallback)
 
-1. **Domain prediction** (free) - Tests common domain patterns like company.com, company.de
-2. **Knowledge-based AI** (cheap) - Uses AI's training data for well-known companies  
-3. **Web search AI** (expensive) - Last resort, searches the web for complex cases
+This reduces API cost while keeping coverage.
 
-This approach reduces API costs by ~95% while maintaining complete coverage.
+### CLI Reports and Utilities
+- `report-recent`: List recent people with basic company context; filter/sort by connections/followers.
+- `report-person`: Print a joined person+company record for a LinkedIn profile.
+- `dedupe-people`: Merge duplicates by canonical LinkedIn URL; preserves data and references.
 
 ## Configuration
 
 Key settings can be modified in `config.py`:
 
 - **`DEFAULT_MAX_RESULTS`** - Default number of profiles to collect (10)
-- **`SEARCH_DELAY`** - Delay between API requests in seconds (1)
+- **`SEARCH_DELAY`** - Delay between API requests (seconds)
 - **`RAW_OUTPUT_DIR`** - Output directory for JSON files ("output")
-- **`REQUIRED_FIELDS`** - Fields that must be present in valid profiles
-- **`MAX_RETRIES`** - Number of retry attempts for failed requests (3)
+- **`MAX_RETRIES`** - Retries for failed Google calls
+
+Environment variables (`.env`):
+- `GOOGLE_API_KEY`, `GOOGLE_CSE_ID` — required for search
+- `OPENAI_API_KEY` — optional, enables OpenAI enrichment
+- `LINKUP_API_KEY` — optional, enables Linkup enrichment
+
+## Database Overview
+
+SQLite schema is bootstrapped by `cli.py bootstrap`:
+- `people`: normalized person data with unique `linkedin_profile`; `lookup_date` timestamped on insert.
+- `companies`: enrichment targets and attributes (`legal_form`, `industries_json`, `size_employees`, ...).
+- `v_people_with_company`: convenient view for joined reads.
+- Outreach tables: `outreach_templates`, `outreach_messages` for future messaging workflows.
+
+Run `cli.py report-person --profile <url>` to inspect a joined record, or `cli.py report-recent` to browse recent entries.
 
 ## Requirements
 

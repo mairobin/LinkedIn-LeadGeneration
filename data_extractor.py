@@ -133,7 +133,7 @@ STOP BEING CONSERVATIVE! These patterns are 100% reliable for current companies:
 - "Berufserfahrung: Boerse Stuttgart Group" → company: "Boerse Stuttgart Group"
 - "Experience: Eviden" → company: "Eviden"
 - "Head of Sales at Daimler Buses" → company: "Daimler Buses"
-- "CEO at Germany Trade & Invest" → company: "Germany Trade & Invest"
+- "CEO at Germany Trade & Invest" → company: "Trade & Invest"
 
 4. CONFIDENCE INDICATORS (EXTRACT IMMEDIATELY):
 ✓ Text after "Experience:" or "Berufserfahrung:"
