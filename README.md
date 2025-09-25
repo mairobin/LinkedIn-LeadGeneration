@@ -185,7 +185,7 @@ This reduces API cost while keeping coverage.
 
 ## Configuration
 
-Key settings can be modified in `config.py`:
+Key settings are centralized in `config/settings.py` (loaded from environment or `.env`). See `.env.template` for all keys.
 
 - **`DEFAULT_MAX_RESULTS`** - Default number of profiles to collect (10)
 - **`SEARCH_DELAY`** - Delay between API requests (seconds)

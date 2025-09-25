@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import List
 
+import logging
 from db.connection import get_connection
 from db import schema
 from pipelines.ingest_profiles import ingest_profiles
@@ -10,6 +11,8 @@ from pipelines.enrich_companies import enrich_batch
 from services.domain_utils import normalize_linkedin_profile_url
 from services.enrichment_service import fetch_company_enrichment, fetch_company_enrichment_linkup
 from sqlite_storage import SQLiteStorage
+from config.settings import get_settings
+from utils.logging_setup import init_logging
 
 
 def cmd_bootstrap(args):
@@ -73,7 +76,7 @@ def cmd_report_person(args):
 		"SELECT person_id, first_name, last_name, linkedin_profile, title_current, email, location_text, "
 		"       connections_linkedin, followers_linkedin, "
 		"       company_id, company_name, domain, website, size_employees, legal_form, industries_json, "
-		"       locations_de_json, multinational, strftime('%Y-%m-%d', last_enriched_at) AS last_enriched "
+		"       locations_de_json, multinational, strftime('%Y-%m-%d %H:%M', datetime(last_enriched_at, 'localtime')) AS last_enriched "
 		"FROM v_people_with_company WHERE linkedin_profile = ?"
 	)
 	cur = conn.cursor()
@@ -217,8 +220,10 @@ def cmd_dedupe_people(args):
     print(f"Merged {merged} duplicate person rows")
 
 def main():
-	parser = argparse.ArgumentParser(description="Lead DB CLI")
-	parser.add_argument("--db", default="leads.db", help="Path to SQLite DB")
+    settings = get_settings()
+    init_logging(settings.log_level)
+    parser = argparse.ArgumentParser(description="Lead DB CLI")
+    parser.add_argument("--db", default=settings.db_path, help="Path to SQLite DB (default from settings)")
 	sub = parser.add_subparsers(dest="cmd", required=True)
 
 	p_boot = sub.add_parser("bootstrap", help="Create tables and indexes")

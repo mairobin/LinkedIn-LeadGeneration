@@ -5,17 +5,15 @@ import requests
 import time
 import logging
 from typing import List, Dict, Any, Optional
-from config import (
-    GOOGLE_API_KEY, GOOGLE_CSE_ID, GOOGLE_SEARCH_URL,
-    SEARCH_DELAY, MAX_RETRIES, REQUEST_TIMEOUT, RESULTS_PER_PAGE
-)
+from config.settings import get_settings, Settings
 
 class GoogleSearcher:
     """Handles Google Custom Search API integration for LinkedIn profiles."""
 
-    def __init__(self):
-        self.api_key = GOOGLE_API_KEY
-        self.cse_id = GOOGLE_CSE_ID
+    def __init__(self, settings: Optional[Settings] = None):
+        self.settings = settings or get_settings()
+        self.api_key = self.settings.google_api_key
+        self.cse_id = self.settings.google_cse_id
         self.api_calls_made = 0
 
         if not self.api_key or not self.cse_id:
@@ -34,13 +32,13 @@ class GoogleSearcher:
             'cx': self.cse_id,
             'q': query,
             'start': start_index,
-            'num': RESULTS_PER_PAGE
+            'num': self.settings.results_per_page
         }
 
-        for attempt in range(MAX_RETRIES):
+        for attempt in range(self.settings.max_retries):
             try:
                 logging.info(f"Making API call {self.api_calls_made + 1}, start index: {start_index}")
-                response = requests.get(GOOGLE_SEARCH_URL, params=params, timeout=REQUEST_TIMEOUT)
+                response = requests.get(self.settings.google_search_url, params=params, timeout=self.settings.request_timeout_seconds)
                 self.api_calls_made += 1
 
                 if response.status_code == 200:
@@ -53,7 +51,7 @@ class GoogleSearcher:
 
             except requests.exceptions.RequestException as e:
                 logging.error(f"Request error on attempt {attempt + 1}: {e}")
-                if attempt < MAX_RETRIES - 1:
+                if attempt < self.settings.max_retries - 1:
                     time.sleep(2 ** attempt)  # Exponential backoff
 
         return None
@@ -70,7 +68,7 @@ class GoogleSearcher:
         while len(all_results) < max_results:
             # Add delay between requests
             if start_index > 1:
-                time.sleep(SEARCH_DELAY)
+                time.sleep(self.settings.search_delay_seconds)
 
             # Make API call
             response_data = self.search_single_page(query, start_index)
@@ -86,7 +84,7 @@ class GoogleSearcher:
                 break
 
             # Add results with metadata
-            page_number = ((start_index - 1) // RESULTS_PER_PAGE) + 1
+            page_number = ((start_index - 1) // self.settings.results_per_page) + 1
             for i, item in enumerate(items):
                 if len(all_results) >= max_results:
                     break
@@ -108,12 +106,12 @@ class GoogleSearcher:
             search_info = response_data.get('searchInformation', {})
             total_results = int(search_info.get('totalResults', 0))
 
-            if start_index + RESULTS_PER_PAGE > total_results:
+            if start_index + self.settings.results_per_page > total_results:
                 logging.info("Reached end of available results")
                 break
 
             # Move to next page
-            start_index += RESULTS_PER_PAGE
+            start_index += self.settings.results_per_page
 
         logging.info(f"Search completed. Total results: {len(all_results)}, API calls made: {self.api_calls_made}")
         return all_results[:max_results]  # Ensure we don't exceed max_results

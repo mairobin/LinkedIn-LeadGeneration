@@ -5,7 +5,7 @@ import html
 from datetime import datetime
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
-from config import LINKEDIN_URL_PATTERNS, EXTRACTION_VERSION
+from config.settings import get_settings
 try:
     import openai
     AI_AVAILABLE = True
@@ -395,7 +395,8 @@ class LinkedInDataExtractor:
         clean_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
 
         # Ensure it's a LinkedIn profile URL
-        if any(pattern in clean_url.lower() for pattern in LINKEDIN_URL_PATTERNS):
+        settings = get_settings()
+        if any(pattern in clean_url.lower() for pattern in settings.linkedin_url_patterns):
             # Normalize to https://linkedin.com format
             clean_url = clean_url.replace('de.linkedin.com', 'linkedin.com')
             clean_url = clean_url.replace('www.linkedin.com', 'linkedin.com')

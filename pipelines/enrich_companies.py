@@ -6,6 +6,7 @@ import re
 import sqlite3
 
 from db.repos.companies_repo import CompaniesRepo
+from services.domain_utils import extract_apex_domain
 
 
 def _canonicalize_legal_form(raw: Optional[str]) -> Optional[str]:
@@ -153,14 +154,17 @@ def enrich_batch(
         data = fetch_func(name, domain)
         if not isinstance(data, dict):
             continue
-        legal_form = _derive_legal_form(name, data.get("Legal_Form")),
+        legal_form = _derive_legal_form(name, data.get("Legal_Form"))
+        website_val = data.get("Website")
+        # Prefer existing domain; otherwise derive from website
+        domain_to_store = domain or (extract_apex_domain(website_val) if website_val else None)
         fields = {
             "legal_form": legal_form,
             "industries_json": data.get("Industries"),
             "locations_de_json": data.get("Locations_Germany"),
             "multinational": 1 if data.get("Multinational") else 0,
-            "domain": domain or None,
-            "website": data.get("Website"),
+            "domain": domain_to_store,
+            "website": website_val,
             "size_employees": data.get("Size_Employees"),
             "business_model_json": data.get("Business_Model_Key_Points"),
             "products_json": data.get("Products_and_Services"),

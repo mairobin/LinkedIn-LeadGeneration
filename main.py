@@ -11,24 +11,17 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from google_searcher import GoogleSearcher
 from data_extractor import LinkedInDataExtractor
 from data_validator import DataValidator
-from config import DEFAULT_MAX_RESULTS, RAW_OUTPUT_DIR
+from config.settings import get_settings
+from utils.logging_setup import init_logging
 
 
-def setup_logging(log_level: str = "INFO"):
-    """Configure logging for the application."""
-    logging.basicConfig(
-        level=getattr(logging, log_level.upper()),
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(sys.stdout)
-        ]
-    )
+ 
 
 
 def parse_arguments():
@@ -61,8 +54,8 @@ Examples:
     parser.add_argument(
         '--max-results', '-m',
         type=int,
-        default=DEFAULT_MAX_RESULTS,
-        help=f'Maximum number of results to collect (default: {DEFAULT_MAX_RESULTS})'
+        default=get_settings().default_max_results,
+        help='Maximum number of results to collect'
     )
 
     parser.add_argument(
@@ -75,8 +68,8 @@ Examples:
     parser.add_argument(
         '--log-level', '-l',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
-        default='INFO',
-        help='Set logging level (default: INFO)'
+        default=get_settings().log_level,
+        help='Set logging level (default: from settings)'
     )
 
     parser.add_argument(
@@ -106,8 +99,8 @@ Examples:
     parser.add_argument(
         '--db-path',
         type=str,
-        default='leads.db',
-        help='Path to SQLite database file (default: leads.db)'
+        default=get_settings().db_path,
+        help='Path to SQLite database file (default: from settings)'
     )
 
     
@@ -181,7 +174,7 @@ def map_to_person_schema(profiles, lookup_date):
 
 def ensure_output_directory():
     """(Deprecated) No-op: JSON file creation removed in favor of console output."""
-    return Path(RAW_OUTPUT_DIR)
+    return Path(get_settings().raw_output_dir)
 
 
 def generate_output_filename(custom_filename: str = None) -> str:
@@ -227,8 +220,8 @@ def main():
         # Parse arguments
         args = parse_arguments()
 
-        # Setup logging
-        setup_logging(args.log_level)
+        # Setup logging (idempotent)
+        init_logging(args.log_level)
 
         # Determine search terms
         if args.query:
@@ -253,17 +246,16 @@ def main():
             searcher = GoogleSearcher()
 
             # Initialize extractor with AI option
-            openai_api_key = None
-            openai_model = None  # Model is chosen per-operation inside extractor
-            if args.use_ai:
-                import os
-                openai_api_key = os.getenv('OPENAI_API_KEY')
-                if not openai_api_key:
-                    logging.error("--use-ai specified but OPENAI_API_KEY not found in .env file")
-                    sys.exit(1)
-                logging.info("Using per-operation model presets (chat: gpt-4o-mini, responses: gpt-4o-mini)")
-
-            extractor = LinkedInDataExtractor(use_ai=args.use_ai, openai_api_key=openai_api_key, openai_model=openai_model)
+            settings = get_settings()
+            openai_api_key = settings.openai_api_key
+            use_ai = args.use_ai and settings.ai_enabled
+            if args.use_ai and not settings.ai_enabled:
+                logging.warning("--use-ai requested but AI_ENABLED=false in settings; proceeding without AI")
+            extractor = LinkedInDataExtractor(
+                use_ai=use_ai,
+                openai_api_key=openai_api_key,
+                openai_model=None,
+            )
             validator = DataValidator()
         except ValueError as e:
             logging.error(f"Configuration error: {e}")
@@ -319,7 +311,7 @@ def main():
         raw_results = search_results if args.include_raw_results else None
 
         # Transform profiles to new Person schema for output
-        lookup_date = datetime.utcnow().strftime('%Y-%m-%d')
+        lookup_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
         transformed_profiles = map_to_person_schema(cleaned_profiles, lookup_date)
 
         output_data = validator.format_output_structure(

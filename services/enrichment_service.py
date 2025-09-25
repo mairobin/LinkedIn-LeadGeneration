@@ -7,13 +7,9 @@ from typing import Any, Dict, Optional, Tuple
 
 import requests
 from bs4 import BeautifulSoup
-from config import GOOGLE_API_KEY, GOOGLE_CSE_ID, GOOGLE_SEARCH_URL, REQUEST_TIMEOUT
+from config.settings import get_settings
 from services.domain_utils import extract_apex_domain
-try:
-    from dotenv import load_dotenv
-except Exception:
-    def load_dotenv() -> None:  # type: ignore
-        return None
+"""All env loading is centralized in config.settings; no direct dotenv here."""
 
 
 PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "enrichment_prompt.txt"
@@ -63,16 +59,17 @@ def _google_search_homepage(company_name: str) -> Tuple[Optional[str], Optional[
 
     Returns (homepage_url, apex_domain).
     """
-    if not GOOGLE_API_KEY or not GOOGLE_CSE_ID or not company_name:
+    settings = get_settings()
+    if not settings.google_api_key or not settings.google_cse_id or not company_name:
         return None, None
     try:
         params = {
-            "key": GOOGLE_API_KEY,
-            "cx": GOOGLE_CSE_ID,
+            "key": settings.google_api_key,
+            "cx": settings.google_cse_id,
             "q": company_name,
             "num": 5,
         }
-        resp = requests.get(GOOGLE_SEARCH_URL, params=params, timeout=REQUEST_TIMEOUT)
+        resp = requests.get(settings.google_search_url, params=params, timeout=settings.request_timeout_seconds)
         if resp.status_code != 200:
             return None, None
         data = resp.json()
@@ -95,7 +92,8 @@ def _google_search_homepage(company_name: str) -> Tuple[Optional[str], Optional[
 
 def _fetch_page_text(url: str, max_chars: int = 4000) -> Optional[str]:
     try:
-        resp = requests.get(url, timeout=REQUEST_TIMEOUT, headers={"User-Agent": "Mozilla/5.0"})
+        settings = get_settings()
+        resp = requests.get(url, timeout=settings.request_timeout_seconds, headers={"User-Agent": "Mozilla/5.0"})
         if resp.status_code != 200:
             return None
         soup = BeautifulSoup(resp.text, "html.parser")
@@ -113,8 +111,8 @@ def fetch_company_enrichment(company_name: str, domain: Optional[str]) -> Option
 
     Returns a dict on success, or None if unavailable/failure.
     """
-    load_dotenv()
-    api_key = os.getenv("OPENAI_API_KEY")
+    settings = get_settings()
+    api_key = settings.openai_api_key
     if not api_key:
         return None
 
@@ -163,8 +161,8 @@ def fetch_company_enrichment_linkup(company_name: str, domain: Optional[str]) ->
     except Exception:
         return None
 
-    load_dotenv()
-    api_key = os.getenv("LINKUP_API_KEY")
+    settings = get_settings()
+    api_key = settings.linkup_api_key
     if not api_key:
         # Allow caller to configure env; if not present, return None
         return None

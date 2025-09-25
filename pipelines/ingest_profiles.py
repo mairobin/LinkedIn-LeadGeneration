@@ -48,7 +48,7 @@ def ingest_profiles(conn: sqlite3.Connection, profiles: Iterable[Dict]) -> int:
         connections = p.get('Connections_LinkedIn') or p.get('connection_count')
         followers = p.get('Followers_LinkedIn') or p.get('follower_count')
         try:
-            from ..main import _parse_connections, _parse_int_shorthand  # type: ignore
+            from utils.number_parsing import _parse_connections, _parse_int_shorthand  # type: ignore
             connections_val = _parse_connections(connections)
             followers_val = _parse_int_shorthand(followers)
         except Exception:

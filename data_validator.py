@@ -3,7 +3,7 @@ import re
 from datetime import datetime
 from typing import Dict, List, Any
 from urllib.parse import urlparse
-from config import REQUIRED_FIELDS, OPTIONAL_FIELDS
+from config.settings import get_settings
 
 class DataValidator:
     def __init__(self):
@@ -46,7 +46,8 @@ class DataValidator:
         """Check if all required fields are present and valid."""
         errors = []
 
-        for field in REQUIRED_FIELDS:
+        settings = get_settings()
+        for field in settings.required_fields:
             if field not in profile or not profile[field]:
                 errors.append(f"Missing required field: {field}")
                 continue
@@ -64,7 +65,8 @@ class DataValidator:
         """Validate optional fields if present."""
         warnings = []
 
-        for field in OPTIONAL_FIELDS:
+        settings = get_settings()
+        for field in settings.optional_fields:
             if field in profile and profile[field]:
                 value = profile[field]
 
