@@ -6,13 +6,23 @@ from typing import List
 import logging
 from db.connection import get_connection
 from db import schema
-from pipelines.ingest_profiles import ingest_profiles
-from pipelines.enrich_companies import enrich_batch
+from pipelines.runner import Pipeline, RunContext
+from pipelines.steps.enrich_companies import LoadPendingCompanies, EnrichAndPersistCompanies
+from pipelines.steps.validate_companies import ValidateCompanies
+from pipelines.steps.persist_companies import PersistCompanies
+from pipelines.steps.validate_people import ValidatePeople
+from pipelines.steps.persist_people import PersistPeople
 from services.domain_utils import normalize_linkedin_profile_url
+from services.mapping import map_to_person_schema
+from services.reporting import print_summary
 from services.enrichment_service import fetch_company_enrichment, fetch_company_enrichment_linkup
-from sqlite_storage import SQLiteStorage
 from config.settings import get_settings
 from utils.logging_setup import init_logging
+from pipelines.steps.validate_data import DataValidator
+from sources.registry import get_source
+import os
+from datetime import datetime, timezone
+import uuid as _uuid
 
 
 def cmd_bootstrap(args):
@@ -26,8 +36,16 @@ def cmd_ingest(args):
 	schema.bootstrap(conn)
 	data = json.loads(Path(args.input).read_text(encoding="utf-8"))
 	profiles = data.get("profiles") or data
-	count = ingest_profiles(conn, profiles)
-	print(f"Ingested {count} profiles")
+	# Build and run people ingestion pipeline directly
+	ctx = RunContext()
+	ctx.people = list(profiles)
+	pipeline = Pipeline([
+		ValidatePeople(),
+		PersistPeople(conn),
+	])
+	ctx = pipeline.run(ctx)
+	count = int(ctx.meta.get('processed_people') or 0)
+	print(f"Ingested {count} people")
 
 
 def _stub_fetcher(name: str, domain: str):
@@ -52,24 +70,28 @@ def cmd_enrich(args):
     settings = get_settings()
     provider = (settings.ai_provider or "stub").lower()
 
-    if provider == "openai":
-        def _ai_fetch(name: str, domain: str):
+    if provider in ("openai", "linkup"):
+        def _gateway_fetch(name: str, domain: str):
+            # Central gateway handles provider routing (OpenAI or Linkup) per config routes
             data = fetch_company_enrichment(name, domain)
             return data if data else _stub_fetcher(name, domain)
-        fetcher = _ai_fetch
-    elif provider == "linkup":
-        def _linkup_fetch(name: str, domain: str):
-            data = fetch_company_enrichment_linkup(name, domain)
-            return data if data else _stub_fetcher(name, domain)
-        fetcher = _linkup_fetch
+        fetcher = _gateway_fetch
     else:
         # Stub provider allowed only in test environment
         if (settings.run_env or "").lower() != "test":
             raise RuntimeError("Stub enrichment provider is only allowed when RUN_ENV=test")
         fetcher = _stub_fetcher
+
     def _progress(cur, total, company_id, name):
         print(f"[{cur}/{total}] Enriching company_id={company_id} name={name}")
-    updated = enrich_batch(conn, fetcher, limit=getattr(args, "limit", 50), on_progress=_progress if getattr(args, "progress", False) else None)
+
+    ctx = RunContext()
+    pipeline = Pipeline([
+        LoadPendingCompanies(conn, limit=getattr(args, "limit", 50)),
+        EnrichAndPersistCompanies(conn, fetcher, on_progress=_progress if getattr(args, "progress", False) else None),
+    ])
+    ctx = pipeline.run(ctx)
+    updated = int(ctx.meta.get("companies_enriched") or 0)
     print(f"Enriched {updated} companies")
 
 def cmd_report_person(args):
@@ -103,25 +125,93 @@ def cmd_report_person(args):
 	print(json.dumps(result, indent=2, ensure_ascii=False))
 
 
-def cmd_snapshot(args):
-	# Persist full Person-schema JSON into snapshot table `profiles`
-	data = json.loads(Path(args.input).read_text(encoding="utf-8"))
-	profiles = data.get("profiles") or data
-	# If data appears in raw format (no LinkedIn_Profile keys), map to Person schema
-	if isinstance(profiles, list) and profiles and not any("LinkedIn_Profile" in p for p in profiles if isinstance(p, dict)):
+def cmd_run(args):
+	settings = get_settings()
+	if not os.getenv("RUN_ID"):
 		try:
-			from datetime import datetime as _dt
-			from main import map_to_person_schema as _map
-			lookup_date = _dt.utcnow().strftime('%Y-%m-%d')
-			profiles = _map(profiles, lookup_date)
+			os.environ["RUN_ID"] = _uuid.uuid4().hex
 		except Exception:
 			pass
-	store = SQLiteStorage(args.db)
-	try:
-		count = store.upsert_profiles(profiles)
-		print(f"Snapshotted {count} profiles to '{store.table_name}'")
-	finally:
-		store.close()
+	if args.pipeline == "ingest-people":
+		# Determine search terms
+		if args.query:
+			search_terms = args.query.split()
+		else:
+			search_terms = args.terms
+		# Resolve sources
+		src_names = args.source or ["linkedin_people_google"]
+		all_people = []
+		all_companies = []
+		for src_name in src_names:
+			src = get_source(src_name)
+			data = src.run(search_terms, args.max_results)
+			if data:
+				for rec in data:
+					try:
+						rec['source_name'] = getattr(src, 'source_name', src_name)
+						rec['source_query'] = ' '.join(search_terms)
+					except Exception:
+						pass
+			if getattr(src, 'entity_type', None) == 'person':
+				all_people.extend(data or [])
+			elif getattr(src, 'entity_type', None) == 'company':
+				all_companies.extend(data or [])
+		# Map and validate
+		validator = DataValidator()
+		lookup_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+		transformed_profiles = []
+		if all_people:
+			transformed_profiles = map_to_person_schema(all_people, lookup_date)
+			for src_rec, mapped in zip(all_people, transformed_profiles):
+				if isinstance(src_rec, dict) and isinstance(mapped, dict):
+					if 'source_name' in src_rec:
+						mapped['source_name'] = src_rec.get('source_name')
+					if 'source_query' in src_rec:
+						mapped['source_query'] = src_rec.get('source_query')
+		api_usage = { 'api_calls_made': 0, 'estimated_daily_limit_used': 'N/A' }
+		output_data = validator.format_output_structure(
+			transformed_profiles,
+			{ 'query': ' '.join(search_terms), 'search_terms': search_terms },
+			{},
+			api_usage,
+			None
+		)
+		print_summary(output_data, api_usage)
+		if args.write_db:
+			conn = get_connection(args.db)
+			schema.bootstrap(conn)
+			processed_people = 0
+			processed_companies = 0
+			if transformed_profiles:
+				# Run people ingestion pipeline directly (replaces legacy ingest_profiles)
+				ctx = RunContext()
+				ctx.people = list(transformed_profiles)
+				pipeline = Pipeline([
+					ValidatePeople(),
+					PersistPeople(conn),
+				])
+				ctx = pipeline.run(ctx)
+				processed_people = int(ctx.meta.get('processed_people') or 0)
+			if all_companies:
+				# Run company ingestion pipeline
+				cctx = RunContext()
+				cctx.companies = list(all_companies)
+				cpipeline = Pipeline([
+					ValidateCompanies(),
+					PersistCompanies(conn),
+				])
+				cctx = cpipeline.run(cctx)
+				processed_companies = int(cctx.meta.get('processed_companies') or 0)
+			print(f"DB write complete: people={processed_people}, companies={processed_companies}")
+		return
+	elif args.pipeline == "enrich-companies":
+		# Reuse enrichment command path
+		ns = argparse.Namespace()
+		setattr(ns, 'db', args.db)
+		setattr(ns, 'limit', args.limit)
+		setattr(ns, 'progress', args.progress)
+		cmd_enrich(ns)
+		return
 
 def cmd_report_recent(args):
 	conn = get_connection(args.db)
@@ -231,41 +321,52 @@ def main():
     init_logging(settings.log_level)
     parser = argparse.ArgumentParser(description="Lead DB CLI")
     parser.add_argument("--db", default=settings.db_path, help="Path to SQLite DB (default from settings)")
-	sub = parser.add_subparsers(dest="cmd", required=True)
+    sub = parser.add_subparsers(dest="cmd", required=True)
 
-	p_boot = sub.add_parser("bootstrap", help="Create tables and indexes")
-	p_boot.set_defaults(func=cmd_bootstrap)
+    p_boot = sub.add_parser("bootstrap", help="Create tables and indexes")
+    p_boot.set_defaults(func=cmd_bootstrap)
 
-	p_ing = sub.add_parser("ingest", help="Ingest profiles JSON into normalized tables")
-	p_ing.add_argument("--input", required=True, help="Path to JSON file (profiles or array)")
-	p_ing.set_defaults(func=cmd_ingest)
-
-	p_snap = sub.add_parser("snapshot", help="Write full Person-schema JSON into 'profiles' snapshot table")
-	p_snap.add_argument("--input", required=True, help="Path to JSON file (profiles or array)")
-	p_snap.set_defaults(func=cmd_snapshot)
+    p_ing = sub.add_parser("ingest", help="Ingest people JSON into normalized tables")
+    p_ing.add_argument("--input", required=True, help="Path to JSON file (array or object)")
+    p_ing.set_defaults(func=cmd_ingest)
 
     p_enr = sub.add_parser("enrich", help="Run enrichment batch (provider from settings.ai_provider)")
-	p_enr.add_argument("--limit", type=int, default=10, help="Max companies to enrich in this run (default: 10)")
-	p_enr.add_argument("--progress", action="store_true", help="Print progress for each company")
-	p_enr.set_defaults(func=cmd_enrich)
+    p_enr.add_argument("--limit", type=int, default=10, help="Max companies to enrich in this run (default: 10)")
+    p_enr.add_argument("--progress", action="store_true", help="Print progress for each company")
+    p_enr.set_defaults(func=cmd_enrich)
 
-	p_rp = sub.add_parser("report-person", help="Show joined person+company for a LinkedIn profile")
-	p_rp.add_argument("--profile", required=True, help="LinkedIn profile URL")
-	p_rp.set_defaults(func=cmd_report_person)
+    p_rp = sub.add_parser("report-person", help="Show joined person+company for a LinkedIn profile")
+    p_rp.add_argument("--profile", required=True, help="LinkedIn profile URL")
+    p_rp.set_defaults(func=cmd_report_person)
 
-	p_rr = sub.add_parser("report-recent", help="List recent people with company context")
-	p_rr.add_argument("--limit", type=int, default=5)
-	p_rr.add_argument("--sort-by", choices=["recent","connections","followers"], default="recent", help="Sort by recent (default), connections or followers")
-	p_rr.add_argument("--min-connections", type=int, default=None, help="Filter: minimum LinkedIn connections")
-	p_rr.add_argument("--min-followers", type=int, default=None, help="Filter: minimum LinkedIn followers")
-	p_rr.set_defaults(func=cmd_report_recent)
+    p_rr = sub.add_parser("report-recent", help="List recent people with company context")
+    p_rr.add_argument("--limit", type=int, default=5)
+    p_rr.add_argument("--sort-by", choices=["recent","connections","followers"], default="recent", help="Sort by recent (default), connections or followers")
+    p_rr.add_argument("--min-connections", type=int, default=None, help="Filter: minimum LinkedIn connections")
+    p_rr.add_argument("--min-followers", type=int, default=None, help="Filter: minimum LinkedIn followers")
+    p_rr.set_defaults(func=cmd_report_recent)
 
-	p_dd = sub.add_parser("dedupe-people", help="Merge duplicate people rows by canonical LinkedIn URL")
-	p_dd.set_defaults(func=cmd_dedupe_people)
+    p_dd = sub.add_parser("dedupe-people", help="Merge duplicate people rows by canonical LinkedIn URL")
+    p_dd.set_defaults(func=cmd_dedupe_people)
 
-	args = parser.parse_args()
-	args.func(args)
+    # Unified runner
+    p_run = sub.add_parser("run", help="Run a named pipeline")
+    p_run.add_argument("pipeline", choices=["ingest-people", "enrich-companies"], help="Pipeline to run")
+    # Ingest flags
+    p_run.add_argument('--query', '-q', type=str, help='Search query as a single string')
+    qg = p_run.add_mutually_exclusive_group(required=False)
+    qg.add_argument('--terms', '-t', nargs='+', help='Search terms as separate arguments')
+    p_run.add_argument('--source', '-s', action='append', help='Source name to run (repeatable). Default: linkedin_people_google')
+    p_run.add_argument('--max-results', '-m', type=int, default=settings.default_max_results, help='Maximum results to collect')
+    p_run.add_argument('--write-db', action='store_true', help='Write normalized people/companies to SQLite')
+    # Enrichment flags
+    p_run.add_argument('--limit', type=int, default=10, help='Max companies to enrich (default: 10)')
+    p_run.add_argument('--progress', action='store_true', help='Print progress for each company')
+    p_run.set_defaults(func=cmd_run)
+
+    args = parser.parse_args()
+    args.func(args)
 
 
 if __name__ == "__main__":
-	main()
+    main()

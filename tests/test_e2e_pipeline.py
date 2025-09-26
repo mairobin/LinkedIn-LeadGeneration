@@ -8,18 +8,18 @@ from typing import Any, Dict, List
 import importlib
 
 
-def _run_main_with_args(args_list: List[str]) -> None:
-    """Simulate CLI execution of main.py with given args (non-interactive)."""
+def _run_cli_with_args(args_list: List[str]) -> None:
+    """Simulate CLI execution of cli.py with given args (non-interactive)."""
     argv_backup = sys.argv[:]
     try:
-        sys.argv = ["main.py"] + args_list
-        # Reload main fresh to re-parse args and pick up monkeypatches
-        if "main" in sys.modules:
-            del sys.modules["main"]
-        import main  # noqa: F401
+        sys.argv = ["cli.py"] + args_list
+        # Reload cli fresh to re-parse args and pick up monkeypatches
+        if "cli" in sys.modules:
+            del sys.modules["cli"]
+        import cli  # noqa: F401
         try:
             # Explicitly run the CLI entrypoint
-            main.main()  # type: ignore[attr-defined]
+            cli.main()  # type: ignore[attr-defined]
         except SystemExit as e:
             # Treat sys.exit(0) as success; re-raise non-zero for visibility
             if int(getattr(e, "code", 0) or 0) not in (0, None):
@@ -63,13 +63,13 @@ def test_e2e_person_source_writes_people_and_companies(tmp_path, monkeypatch):
 
     # Prepare temp DB path and run main with write-db enabled
     db_path = tmp_path / "e2e.db"
-    _run_main_with_args([
+    _run_cli_with_args([
+        "--db", str(db_path),
+        "run", "ingest-people",
         "--query", "Engineer Berlin",
         "--max-results", "1",
         "--source", "linkedin_people_google",
         "--write-db",
-        "--db-path", str(db_path),
-        "--log-level", "ERROR",
     ])
 
     # Verify DB content: one person, one company, linked via company_id, provenance set

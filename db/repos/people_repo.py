@@ -26,6 +26,7 @@ class PeopleRepo:
         source_name: Optional[str] = None,
         source_query: Optional[str] = None,
     ) -> int:
+        """Insert or update a person by linkedin_profile; returns person id."""
         sql = (
             "INSERT INTO people (linkedin_profile, first_name, last_name, title_current, email, location_text, connections_linkedin, followers_linkedin, website_info, phone_info, info_raw, insights_text, lookup_date, source_name, source_query) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, datetime('now')), ?, ?) "
@@ -54,9 +55,15 @@ class PeopleRepo:
         return int(row[0])
 
     def link_person_to_company(self, linkedin_profile: str, company_id: int) -> None:
+        """Associate a person row to a company by ids."""
         sql = "UPDATE people SET company_id = ? WHERE linkedin_profile = ?;"
         self.conn.execute(sql, (company_id, linkedin_profile))
         self.conn.commit()
+
+    # --- Normalized names (wrappers) ---
+    def upsert(self, **kwargs) -> int:
+        """Normalized wrapper alias for upserting a person."""
+        return self.upsert_person(**kwargs)
 
 
 

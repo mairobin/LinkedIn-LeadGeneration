@@ -9,6 +9,10 @@ class CompaniesRepo:
         self.conn = conn
 
     def upsert_by_domain(self, name: Optional[str], domain: Optional[str], website: Optional[str], source_name: Optional[str] = None, source_query: Optional[str] = None) -> int:
+        """Insert or update a company row using its domain as the stable key.
+
+        Returns the company id.
+        """
         # Manual upsert to avoid relying on UNIQUE constraint semantics
         cur = self.conn.cursor()
         # Ensure we never insert a NULL name to satisfy stricter schemas
@@ -38,6 +42,24 @@ class CompaniesRepo:
         return int(cur.lastrowid)
 
     def update_enrichment(self, company_id: int, fields: Dict[str, Any]) -> None:
+        """Update enrichment-related fields for a company by id.
+
+        Fields may include *_json arrays which will be stored as JSON text.
+        """
+        # Avoid UNIQUE(domain) conflicts by skipping domain updates that collide with another row
+        safe_fields: Dict[str, Any] = dict(fields)
+        try:
+            if safe_fields.get("domain"):
+                cur = self.conn.cursor()
+                cur.execute("SELECT id FROM companies WHERE domain = ?", (safe_fields["domain"],))
+                row = cur.fetchone()
+                if row and int(row[0]) != int(company_id):
+                    # Another company already owns this domain; skip updating domain for this row
+                    safe_fields.pop("domain", None)
+        except Exception:
+            # Best-effort safeguard; proceed without altering fields on error
+            pass
+
         columns = []
         values: List[Any] = []
         for key in [
@@ -52,15 +74,15 @@ class CompaniesRepo:
             "products_json",
             "recent_news_json",
         ]:
-            if key in fields:
-                if key.endswith("_json") and isinstance(fields[key], (list, dict)):
+            if key in safe_fields:
+                if key.endswith("_json") and isinstance(safe_fields[key], (list, dict)):
                     columns.append(f"{key} = json(?)")
                     import json as _json
                     # Preserve non-ASCII characters (e.g., umlauts) in stored JSON text
-                    values.append(_json.dumps(fields[key], ensure_ascii=False))
+                    values.append(_json.dumps(safe_fields[key], ensure_ascii=False))
                 else:
                     columns.append(f"{key} = ?")
-                    values.append(fields[key])
+                    values.append(safe_fields[key])
         columns.append("last_enriched_at = datetime('now')")
         sql = f"UPDATE companies SET {', '.join(columns)} WHERE id = ?;"
         values.append(company_id)
@@ -68,6 +90,7 @@ class CompaniesRepo:
         self.conn.commit()
 
     def select_pending_enrichment(self, limit: int = 50) -> List[Tuple]:
+        """Return (id, name, domain) tuples for companies missing enrichment."""
         sql = (
             "SELECT id, name, domain FROM companies "
             "WHERE last_enriched_at IS NULL "
@@ -78,5 +101,21 @@ class CompaniesRepo:
         cur = self.conn.cursor()
         cur.execute(sql, (limit,))
         return cur.fetchall()
+
+    # --- Normalized names (wrappers) ---
+    def upsert_company(self, name: Optional[str], domain: Optional[str], website: Optional[str], source_name: Optional[str] = None, source_query: Optional[str] = None) -> int:
+        """Normalized wrapper for inserting/updating a company."""
+        return self.upsert_by_domain(name, domain, website, source_name, source_query)
+
+    def save_company_enrichment(self, company_id: int, fields: Dict[str, Any]) -> None:
+        """Normalized wrapper to persist enrichment fields for a company id."""
+        self.update_enrichment(company_id, fields)
+
+    def get_pending_companies(self, limit: int = 50) -> List[Tuple[int, Optional[str], Optional[str]]]:
+        """Normalized wrapper: companies pending enrichment.
+
+        Returns a list of (id, name, domain).
+        """
+        return self.select_pending_enrichment(limit)
 
 

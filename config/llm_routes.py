@@ -20,14 +20,7 @@ ROUTES: dict[str, dict] = {
     "profile_extraction": {
         "provider": os.getenv("LLM_PROFILE_PROVIDER", "openai"),
         "model": os.getenv("OPENAI_MODEL_PROFILE"),
-        "temperature": 0,
         "operation": "profile_extraction",
-    },
-    # Website discovery (uses OpenAI Responses API by default)
-    "website_discovery_responses": {
-        "provider": os.getenv("LLM_WEBSITE_PROVIDER", "openai"),
-        "model": os.getenv("OPENAI_MODEL_WEBSITE_DISCOVERY") or os.getenv("OPENAI_MODEL_RESPONSES"),
-        "operation": "website_discovery",
     },
 }
 

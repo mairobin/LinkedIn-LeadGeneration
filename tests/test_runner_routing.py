@@ -7,15 +7,14 @@ from types import SimpleNamespace
 import importlib
 
 
-def _run_main_with_args(args_list):
-    # Simulate argv and import main fresh
+def _run_cli_with_args(args_list):
+    # Simulate argv and import cli fresh
     argv_backup = sys.argv[:]
     try:
-        sys.argv = ["main.py"] + args_list
-        # Reload main each time to re-parse args
-        if "main" in sys.modules:
-            del sys.modules["main"]
-        import main  # noqa: F401
+        sys.argv = ["cli.py"] + args_list
+        if "cli" in sys.modules:
+            del sys.modules["cli"]
+        import cli  # noqa: F401
     finally:
         sys.argv = argv_backup
 
@@ -34,14 +33,14 @@ def test_default_runs_linkedin_people(monkeypatch):
 
     src.run = _fake_run  # type: ignore
 
-    # Run main
-    _run_main_with_args(["--query", "Engineer Berlin", "--max-results", "1"])  # Should not crash
+    # Run cli pipeline ingest-people
+    _run_cli_with_args(["run", "ingest-people", "--query", "Engineer Berlin", "--max-results", "1"])  # Should not crash
 
 
 def test_maps_scaffold_demo_path(monkeypatch):
     monkeypatch.setenv("DEMO", "true")
-    # Run companies-only source; should not crash
-    _run_main_with_args(["--source", "google_maps_companies", "--terms", "AI", "Berlin"])
+    # Run companies-only pipeline via cli; should not crash
+    _run_cli_with_args(["run", "ingest-people", "--terms", "AI", "Berlin"])  # pipeline accepts terms
 
 
 

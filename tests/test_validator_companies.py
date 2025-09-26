@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from data_validator import DataValidator
+from pipelines.steps.validate_data import DataValidator
 
 
 def test_validate_all_companies_filters_empty():

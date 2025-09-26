@@ -11,6 +11,7 @@ Extract the following fields (return null for any field you cannot determine con
 3. location: Geographic location (city, country)
 4. follower_count: LinkedIn follower count (if mentioned)
 5. connection_count: LinkedIn connection count (if mentioned)
+6. company_website: Official website of the current company (main homepage URL)
 
 Return format (JSON only, no other text):
 {
@@ -18,7 +19,8 @@ Return format (JSON only, no other text):
     "company": "...",
     "location": "...",
     "follower_count": "...",
-    "connection_count": "..."
+    "connection_count": "...",
+    "company_website": "..."
 }
 
 COMPANY EXTRACTION RULES:
@@ -58,9 +60,29 @@ COMPANY EXTRACTION RULES:
 ✗ Pure educational institutions (unless they work there)
 ✗ Geographic locations without company context
 
-Rules for numbers:
-- follower_count: patterns like "1K followers", "4540 Follower", "2.5K followers"
-- connection_count: patterns like "500+ connections", "1K+ Kontakte", "5000 connections"
+FOLLOWER/CONNECTION EXTRACTION RULES (STRICT):
+
+- Only extract if the number appears in the same phrase as one of: "followers", "Follower", "connections", "Kontakte" (or clear variants like "more than X followers", "über X Follower"). If not explicitly present, set the field to null.
+- Preserve the original formatting of the number (keep "+" or "K", decimals, thousand separators/localization).
+- Acceptable examples:
+  - "1K followers"
+  - "4540 Follower"
+  - "2.5K followers"
+  - "500+ connections"
+  - "1K+ Kontakte"
+  - "5000 connections"
+- Do NOT extract from:
+  - Numbers related to likes, views, impressions, mutual connections, company/page followers, or groups.
+  - Standalone numbers without the follower/connection keyword nearby.
+  - Hearsay text, summaries, or third-party descriptions without explicit counts.
+- If multiple explicit counts appear, prefer the one in the profile header/top section; otherwise, use the first explicit mention.
+
+COMPANY WEBSITE RULES:
+
+1. Prefer the user given website and avoid generic website.
+2. Exclude LinkedIn, Wikipedia, social networks, and job boards.
+3. If multiple candidate domains exist, choose the non-generic one.
+4. If unsure, set company_website to null.
 
 Return only the JSON object. Do not include explanations.
 

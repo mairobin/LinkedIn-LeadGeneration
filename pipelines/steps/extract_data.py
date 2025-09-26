@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+# This file was moved from data_extractor.py to co-locate step-like logic.
+# Imports and relative resource paths have been adjusted accordingly.
+
 import re
 import logging
 import json
@@ -13,6 +18,7 @@ except ImportError:
     AI_AVAILABLE = False
 
 from utils.llm_logger import log_call, sha256_text  # added
+
 
 class AIProfileExtractor:
     """Uses OpenAI to extract structured data from LinkedIn profiles."""
@@ -50,8 +56,7 @@ class AIProfileExtractor:
                 ]
             }
 
-            if "gpt-5" not in self.model_chat:
-                completion_params["temperature"] = 0
+            # Do not force temperature; some models allow only default
 
             if (
                 "gpt-4o" in self.model_chat
@@ -72,7 +77,7 @@ class AIProfileExtractor:
                 messages=completion_params["messages"],
                 prompt_name="profile_extraction_v1",
                 prompt_text=prompt,
-                temperature=completion_params.get("temperature", 0),
+                # temperature omitted to respect model defaults
             )
             _dt_ms = int((_time.time() - _t0) * 1000)
             self.extraction_stats['api_calls_made'] += 1
@@ -114,7 +119,10 @@ class AIProfileExtractor:
             if json_start >= 0 and json_end > json_start:
                 json_content = content[json_start:json_end]
                 extracted_data = json.loads(json_content)
-                cleaned_data = self._validate_extracted_data(extracted_data)
+                # Strict-only validation via Pydantic schema
+                from models import ProfileExtractionResult
+                strict_obj = ProfileExtractionResult.model_validate(extracted_data)
+                cleaned_data = strict_obj.model_dump()
                 self.extraction_stats['ai_extractions_successful'] += 1
                 logging.debug(f"AI extraction successful for {profile_name}")
                 return cleaned_data
@@ -157,8 +165,10 @@ class AIProfileExtractor:
 
     def _create_extraction_prompt(self, name: str, title: str, summary: str) -> str:
         """Create a prompt for structured data extraction from external template."""
+        # Read from prompts/profile_extraction_prompt.txt relative to project root
         from pathlib import Path
-        prompt_path = Path(__file__).resolve().parent / "prompts" / "profile_extraction_prompt.txt"
+        root = Path(__file__).resolve().parents[2]
+        prompt_path = root / "prompts" / "profile_extraction_prompt.txt"
         try:
             template = prompt_path.read_text(encoding="utf-8")
         except Exception:
@@ -201,59 +211,8 @@ class AIProfileExtractor:
             logging.info(f"Found website using domain prediction: {website_url}")
             return website_url
 
-        # Second try: Knowledge-based AI (CHEAP)
-        logging.info(f"Domain prediction failed, trying knowledge-based lookup for {company_name}")
-        website_url = self._get_company_website_fallback(company_name, location)
-        
-        if website_url:
-            logging.info(f"Found website using knowledge-based approach: {website_url}")
-            return website_url
-
-        # Third try: Web search AI (EXPENSIVE - last resort)
-        logging.info(f"Knowledge-based lookup failed, trying web search for {company_name}")
-        
-        try:
-            # Use OpenAI Responses API with web search tool
-            from services.llm_client import LLMClient
-            llm = LLMClient()
-            response = llm.responses(
-                use_case="website_discovery_responses",
-                input_text=f"Find the official website URL of the company '{company_name.strip()}'. Return only the URL.",
-                tools=[{"type": "web_search"}],
-                prompt_name="website_discovery_query_v1",
-            )
-
-            # Extract the model output - find the message in the output
-            content = None
-            for item in response.output:
-                if hasattr(item, 'type') and item.type == 'message':
-                    if hasattr(item, 'content') and len(item.content) > 0:
-                        content = item.content[0].text.strip()
-                        break
-            
-            if not content:
-                logging.warning(f"Could not extract content from web search response for {company_name}")
-                return None
-
-            # If the response indicates uncertainty, return None
-            if any(word in content.lower() for word in ['unknown', 'not sure', 'cannot', "don't know", 'unclear', 'not found', 'unable to find']):
-                logging.info(f"Web search API couldn't find confident result for {company_name}")
-                return None
-
-            website_url = self._extract_and_validate_url(content)
-            if website_url:
-                logging.info(f"Found website using web search API: {website_url}")
-            else:
-                logging.info(f"Web search API found response but couldn't extract valid URL for {company_name}")
-            
-            return website_url
-
-        except AttributeError:
-            logging.warning(f"Responses API not available for {company_name}")
-            return None
-        except Exception as e:
-            logging.warning(f"Failed to find website for {company_name} using web search: {e}")
-            return None
+        # No knowledge-based fallback anymore; stop here
+        return None
 
     def _predict_company_domain(self, company_name: str) -> Optional[str]:
         """Predict company domain using common patterns (FREE approach)."""
@@ -778,6 +737,7 @@ class LinkedInDataExtractor:
         location = ai_extracted.get('location')
         follower_count = ai_extracted.get('follower_count')
         connection_count = ai_extracted.get('connection_count')
+        company_website = ai_extracted.get('company_website')
 
         # If AI failed to extract follower/connection data, try regex fallback
         if not follower_count or not connection_count:
@@ -804,6 +764,8 @@ class LinkedInDataExtractor:
             profile_data['follower_count'] = follower_count.strip()
         if connection_count and len(connection_count.strip()) > 0:
             profile_data['connection_count'] = connection_count.strip()
+        if company_website and isinstance(company_website, str) and len(company_website.strip()) > 0:
+            profile_data['company_website'] = company_website.strip()
         # Parse summary-derived fields (email, website, phone, experience_years, summary_other)
         parsed_summary = self._extract_from_summary(summary)
         # Normalize summary_other if present
@@ -845,9 +807,9 @@ class LinkedInDataExtractor:
         result: Dict[str, Optional[str]] = {}
         if not summary_text or not isinstance(summary_text, str):
             return result
-
+        
         text = summary_text.strip()
-
+        
         # Email extraction
         try:
             email_match = re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", text)
@@ -855,7 +817,7 @@ class LinkedInDataExtractor:
                 result['email'] = email_match.group(0)
         except Exception:
             pass
-
+        
         # URL extraction (prefer personal websites; skip linkedin and common socials)
         try:
             url_pattern = r"https?://[\w.-]+\.[A-Za-z]{2,}(?:/[\w\-./?%&=]*)?"
@@ -879,7 +841,7 @@ class LinkedInDataExtractor:
                 result['website'] = website
         except Exception:
             pass
-
+        
         # Phone extraction (simple but robust; allows +country and spaces)
         try:
             phone_pattern = r"(?:(?:\+|00)\d{1,3}[\s-]?)?(?:\(?\d{2,4}\)?[\s-]?)?\d{3,4}[\s-]?\d{3,4}"
@@ -892,7 +854,7 @@ class LinkedInDataExtractor:
                     result['phone'] = phone.strip()
         except Exception:
             pass
-
+        
         # Years of experience extraction
         try:
             exp_patterns = [
@@ -914,7 +876,7 @@ class LinkedInDataExtractor:
                 result['experience_years'] = experience_years
         except Exception:
             pass
-
+        
         # summary_other: pick top up to 5 sentences with signals (numbers, named entities-like)
         try:
             sentences = re.split(r"(?<=[.!?])\s+|\n+", text)
@@ -946,7 +908,7 @@ class LinkedInDataExtractor:
                 result['summary_other'] = uniq[:5]
         except Exception:
             pass
-
+        
         return result
 
     def _is_similar_text(self, text1: str, text2: str, threshold: float = 0.8) -> bool:
@@ -992,7 +954,7 @@ class LinkedInDataExtractor:
             if value and isinstance(value, str) and len(value.strip()) > 2:
                 # Skip description fields as they're likely in summary already
                 if 'description' not in key.lower():
-                    unique_data[key] = value.strip()
+                    unique_data[key] = value
 
         return unique_data
 
@@ -1084,14 +1046,26 @@ class LinkedInDataExtractor:
 
             company = profile.get('company')
             location = profile.get('location')
+            existing_website = profile.get('company_website') or profile.get('website') or profile.get('Website_Info')
 
-            if company:
-                website = self.ai_extractor.get_company_website(company, location)
-                if website:
-                    domain = _extract_apex_domain(website)
-                    if domain:
-                        enhanced_profile['company_domain'] = domain
-                        logging.debug(f"Derived apex domain for {company}: {domain}")
+            def _store_domain_from_website(site: Optional[str]) -> None:
+                if not site:
+                    return
+                domain = _extract_apex_domain(site)
+                if domain:
+                    enhanced_profile['company_domain'] = domain
+                    logging.debug(f"Derived apex domain for {company}: {domain}")
+
+            # 1) Prefer LLM-provided website from extraction
+            if existing_website:
+                _store_domain_from_website(existing_website)
+            # 2) If missing, try domain prediction
+            if 'company_domain' not in enhanced_profile and company:
+                website3 = self.ai_extractor._predict_company_domain(company)
+                if website3:
+                    if 'company_website' not in enhanced_profile:
+                        enhanced_profile['company_website'] = website3
+                    _store_domain_from_website(website3)
 
             enhanced_profiles.append(enhanced_profile)
 
@@ -1100,3 +1074,5 @@ class LinkedInDataExtractor:
     def get_extraction_stats(self) -> Dict:
         """Return extraction statistics."""
         return self.extraction_stats.copy()
+
+

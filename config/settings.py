@@ -62,6 +62,13 @@ class Settings:
     google_places_text_search_url: str = "https://maps.googleapis.com/maps/api/place/textsearch/json"
     google_places_details_url: str = "https://maps.googleapis.com/maps/api/place/details/json"
 
+    # Logging/tracing
+    llm_trace: bool = False
+    llm_log_path: str = "logs/llm_calls.jsonl"
+
+    # Feature flags
+    demo: bool = False
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
@@ -124,6 +131,9 @@ def get_settings() -> Settings:
         google_places_api_key=os.getenv("GOOGLE_PLACES_API_KEY"),
         google_places_text_search_url=os.getenv("GOOGLE_PLACES_TEXT_SEARCH_URL", "https://maps.googleapis.com/maps/api/place/textsearch/json"),
         google_places_details_url=os.getenv("GOOGLE_PLACES_DETAILS_URL", "https://maps.googleapis.com/maps/api/place/details/json"),
+        llm_trace=os.getenv("LLM_TRACE", "false").lower() in ("1", "true", "yes", "on"),
+        llm_log_path=os.getenv("LLM_LOG_PATH", "logs/llm_calls.jsonl"),
+        demo=os.getenv("DEMO", "false").lower() in ("1", "true", "yes", "on"),
     )
 
 

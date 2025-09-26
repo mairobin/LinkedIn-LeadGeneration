@@ -47,14 +47,19 @@ def log_call(
 ) -> None:
     """Append a single JSON line describing an LLM call if tracing is enabled.
 
-    Controlled by env variables:
-      - LLM_TRACE: enable/disable logging (default: false)
-      - LLM_LOG_PATH: output file path (default: logs/llm_calls.jsonl)
+    Controlled by settings in config/settings.py
     """
-    if not _as_bool(os.getenv("LLM_TRACE", "false")):
+    from config.settings import get_settings
+    try:
+        # Ensure latest env changes (tests may monkeypatch env between calls)
+        get_settings.cache_clear()  # type: ignore[attr-defined]
+    except Exception:
+        pass
+    settings = get_settings()
+    if not settings.llm_trace:
         return
 
-    log_path = Path(os.getenv("LLM_LOG_PATH", "logs/llm_calls.jsonl"))
+    log_path = Path(settings.llm_log_path)
     _ensure_parent_dir(log_path)
 
     payload: Dict[str, Any] = {
@@ -71,6 +76,7 @@ def log_call(
         "usage": usage or {},
     }
     # Include run metadata if present
+    import os
     run_id = os.getenv("RUN_ID")
     if run_id:
         payload["run_id"] = run_id

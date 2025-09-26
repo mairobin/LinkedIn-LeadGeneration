@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List
-import os
 
 from sources.base import LeadSource
 from sources.registry import register
@@ -16,7 +15,8 @@ class GoogleMapsCompaniesSource(LeadSource):
         pass
 
     def run(self, terms: List[str], max_results: int) -> List[Dict[str, Any]]:
-        if os.getenv("DEMO", "false").lower() == "true":
+        from config.settings import get_settings
+        if get_settings().demo:
             # Minimal demo stub
             name = " ".join(terms) if terms else "Example Company"
             return [{

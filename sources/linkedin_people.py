@@ -6,10 +6,10 @@ from sources.base import LeadSource
 from sources.registry import register
 from typing import Optional
 
-from data_validator import DataValidator
+from pipelines.steps.validate_data import DataValidator
 from config.settings import get_settings
 from google_searcher import GoogleSearcher
-from data_extractor import LinkedInDataExtractor
+from pipelines.steps.extract_data import LinkedInDataExtractor
 
 
 class LinkedInPeopleSource(LeadSource):

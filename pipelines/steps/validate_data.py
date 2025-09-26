@@ -1,9 +1,14 @@
+from __future__ import annotations
+
+# This file was moved from data_validator.py to co-locate step-like logic.
+
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Any
 from urllib.parse import urlparse
 from config.settings import get_settings
+
 
 class DataValidator:
     def __init__(self):
@@ -183,7 +188,7 @@ class DataValidator:
                 'search_query': search_metadata.get('query', ''),
                 'search_terms': search_metadata.get('search_terms', []),
                 'total_results': len(profiles),
-                'generated_at': datetime.utcnow().isoformat() + 'Z',
+                'generated_at': datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
                 'extraction_version': '2.0',
                 'api_calls_used': api_usage.get('api_calls_made', 0)
             },
@@ -288,3 +293,5 @@ class DataValidator:
                 cleaned['profile_url'] = url.replace('http://', 'https://')
 
         return cleaned
+
+
