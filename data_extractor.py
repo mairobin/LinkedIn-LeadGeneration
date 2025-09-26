@@ -375,15 +375,12 @@ class LinkedInDataExtractor:
             'duplicate_profiles_removed': 0
         }
         self.seen_urls = set()
-        self.use_ai = use_ai and AI_AVAILABLE
-
-        if self.use_ai and openai_api_key:
-            self.ai_extractor = AIProfileExtractor(openai_api_key, openai_model)
-            logging.info("AI-powered extraction enabled")
-        else:
-            self.ai_extractor = None
-            if use_ai:
-                logging.warning("AI extraction requested but OpenAI not available or no API key provided")
+        # Enforce AI usage for extraction; fail fast if unavailable
+        self.use_ai = True
+        if not AI_AVAILABLE or not openai_api_key:
+            raise ValueError("AI extraction is required but OpenAI is not available or API key is missing")
+        self.ai_extractor = AIProfileExtractor(openai_api_key, openai_model)
+        logging.info("AI-powered extraction enabled")
 
     def clean_linkedin_url(self, url: str) -> Optional[str]:
         """Clean and validate LinkedIn URL."""
@@ -751,100 +748,47 @@ class LinkedInDataExtractor:
         # Clean LinkedIn boilerplate and normalize summary
         summary = self._normalize_text_basic(self._remove_linkedin_boilerplate(summary))
 
-        # Use AI extraction if available, otherwise preserve raw data
-        if self.use_ai and self.ai_extractor:
-            # Include snippet for better follower/connection data extraction
-            enhanced_summary = f"{summary}\n\nGoogle Snippet: {snippet}"
-            ai_extracted = self.ai_extractor.extract_structured_data(name, title, enhanced_summary)
-            current_position = ai_extracted.get('current_position') or headline
-            company = ai_extracted.get('company')
-            location = ai_extracted.get('location')
-            follower_count = ai_extracted.get('follower_count')
-            connection_count = ai_extracted.get('connection_count')
+        # AI extraction (required)
+        # Include snippet for better follower/connection data extraction
+        enhanced_summary = f"{summary}\n\nGoogle Snippet: {snippet}"
+        ai_extracted = self.ai_extractor.extract_structured_data(name, title, enhanced_summary)
+        current_position = ai_extracted.get('current_position') or headline
+        company = ai_extracted.get('company')
+        location = ai_extracted.get('location')
+        follower_count = ai_extracted.get('follower_count')
+        connection_count = ai_extracted.get('connection_count')
 
-            # If AI failed to extract follower/connection data, try regex fallback
-            if not follower_count or not connection_count:
-                follower_connection_data = self.extract_follower_and_connection_data(google_result)
-                follower_count = follower_count or follower_connection_data.get('follower_count')
-                connection_count = connection_count or follower_connection_data.get('connection_count')
-        else:
-            # Fallback: preserve all available raw data instead of forcing structure
-            current_position = headline  # Simple headline extraction
-            company = None  # Don't force company extraction
-            location = None  # Don't force location extraction
+        # If AI failed to extract follower/connection data, try regex fallback
+        if not follower_count or not connection_count:
+            follower_connection_data = self.extract_follower_and_connection_data(google_result)
+            follower_count = follower_count or follower_connection_data.get('follower_count')
+            connection_count = connection_count or follower_connection_data.get('connection_count')
 
         # Build profile data structure
-        if self.use_ai and self.ai_extractor:
-            # AI extraction: structured format
-            profile_data = {
-                'name': name,
-                'profile_url': linkedin_url,
-                'summary': summary
-            }
+        # AI extraction: structured format
+        profile_data = {
+            'name': name,
+            'profile_url': linkedin_url,
+            'summary': summary
+        }
 
-            # Add AI-extracted fields only if meaningful
-            if current_position and len(current_position.strip()) > 3:
-                profile_data['current_position'] = current_position.strip()
-            if company and len(company.strip()) > 2:
-                profile_data['company'] = company.strip()
-            if location and len(location.strip()) > 2:
-                profile_data['location'] = location.strip()
-            if follower_count and len(follower_count.strip()) > 0:
-                profile_data['follower_count'] = follower_count.strip()
-            if connection_count and len(connection_count.strip()) > 0:
-                profile_data['connection_count'] = connection_count.strip()
-            # Parse summary-derived fields (email, website, phone, experience_years, summary_other)
-            parsed_summary = self._extract_from_summary(summary)
-            # Normalize summary_other if present
-            if 'summary_other' in parsed_summary and isinstance(parsed_summary['summary_other'], list):
-                parsed_summary['summary_other'] = self._clean_summary_other(parsed_summary['summary_other'])
-            profile_data.update(parsed_summary)
-
-        else:
-            # Fallback: preserve essential raw data with smart deduplication
-            profile_data = {
-                'name': name,
-                'profile_url': linkedin_url,
-                'summary': summary
-            }
-
-            # Add headline as current_position if meaningful and different from summary
-            if headline and len(headline.strip()) > 3:
-                profile_data['current_position'] = headline.strip()
-
-            # Create a smart raw_data section that preserves unique information
-            raw_data = {}
-
-
-            # Only include title if it's different from headline/summary
-            if title and title != headline and not self._is_similar_text(title, summary[:100]):
-                raw_data['title'] = title
-
-            # Only include snippet if it's meaningfully different from summary
-            if snippet and not self._is_similar_text(snippet, summary[:200]):
-                raw_data['snippet'] = snippet
-
-            # Extract any unique structured data from metatags/snippets
-            unique_structured_data = self._extract_unique_structured_data(metatags_info, snippet_info)
-
-            # Extract follower and connection data
-            follower_data = self.extract_follower_and_connection_data(google_result)
-            if follower_data:
-                unique_structured_data.update(follower_data)
-
-            if unique_structured_data:
-                raw_data['structured_data'] = unique_structured_data
-
-            # Only add raw_data if it contains unique information
-            if raw_data:
-                profile_data['raw_data'] = raw_data
-
-            # Parse summary-derived fields (email, website, phone, experience_years, summary_other)
-            parsed_summary = self._extract_from_summary(summary)
-            # Normalize summary_other if present
-            if 'summary_other' in parsed_summary and isinstance(parsed_summary['summary_other'], list):
-                parsed_summary['summary_other'] = self._clean_summary_other(parsed_summary['summary_other'])
-            profile_data.update(parsed_summary)
+        # Add AI-extracted fields only if meaningful
+        if current_position and len(current_position.strip()) > 3:
+            profile_data['current_position'] = current_position.strip()
+        if company and len(company.strip()) > 2:
+            profile_data['company'] = company.strip()
+        if location and len(location.strip()) > 2:
+            profile_data['location'] = location.strip()
+        if follower_count and len(follower_count.strip()) > 0:
+            profile_data['follower_count'] = follower_count.strip()
+        if connection_count and len(connection_count.strip()) > 0:
+            profile_data['connection_count'] = connection_count.strip()
+        # Parse summary-derived fields (email, website, phone, experience_years, summary_other)
+        parsed_summary = self._extract_from_summary(summary)
+        # Normalize summary_other if present
+        if 'summary_other' in parsed_summary and isinstance(parsed_summary['summary_other'], list):
+            parsed_summary['summary_other'] = self._clean_summary_other(parsed_summary['summary_other'])
+        profile_data.update(parsed_summary)
 
         self.extraction_stats['successful_extractions'] += 1
         logging.debug(f"Successfully extracted profile: {name}")

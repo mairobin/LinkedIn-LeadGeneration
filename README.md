@@ -93,11 +93,12 @@ python cli.py report-person --profile https://linkedin.com/in/example --db leads
 # Stub (no network):
 python cli.py enrich --db leads.db --limit 20
 
-# OpenAI (requires OPENAI_API_KEY in .env):
-python cli.py enrich --db leads.db --use-ai --limit 20 --progress
+# Enrichment provider is selected via settings.ai_provider (stub|openai|linkup)
+# OpenAI (requires OPENAI_API_KEY; AI_PROVIDER=openai):
+AI_PROVIDER=openai python cli.py enrich --db leads.db --limit 20 --progress
 
-# Linkup (requires LINKUP_API_KEY in env):
-python cli.py enrich --db leads.db --use-linkup --limit 20 --progress
+# Linkup (requires LINKUP_API_KEY; AI_PROVIDER=linkup):
+AI_PROVIDER=linkup python cli.py enrich --db leads.db --limit 20 --progress
 ```
 
 ### Basic Search (No AI - Default)
@@ -107,13 +108,10 @@ python main.py --query "Software Engineer Stuttgart Python" --max-results 50
 
 ### AI-Enhanced Search with Website Discovery
 ```bash
-python main.py --terms "Data Scientist" "Berlin" "Machine Learning" --use-ai --max-results 30
+AI_ENABLED=true OPENAI_API_KEY=sk-... python main.py --terms "Data Scientist" "Berlin" "Machine Learning" --max-results 30
 ```
 
-**Note:** By default, the tool runs without AI to minimize costs. Add `--use-ai` to enable:
-- Enhanced profile data extraction 
-- Automatic company website discovery
-- Better data accuracy (requires OpenAI API key)
+AI usage is controlled by settings: set `AI_ENABLED=true` for the search/extraction flow, and select enrichment provider via `AI_PROVIDER`.
 
 ### Debug and Testing
 ```bash
@@ -171,7 +169,7 @@ python cli.py report-person --profile https://linkedin.com/in/example --db leads
 - **People `lookup_date`**: Automatically set at insert to the current UTC date, and backfilled for existing rows.
 
 ### Cost-Optimized Website Discovery
-When `--use-ai` is enabled, website discovery follows a staged approach:
+When AI is enabled, website discovery follows a staged approach:
 1. Domain prediction (free)
 2. Knowledge-based AI (cheap)
 3. Web search AI (fallback)
@@ -214,3 +212,44 @@ Run `cli.py report-person --profile <url>` to inspect a joined record, or `cli.p
 - OpenAI API key (optional, for enhanced extraction accuracy)
 
 See `requirements.txt` for complete list of Python dependencies.
+
+## Dataflow
+
+The system follows a mostly linear flow with optional branches for AI enhancement and enrichment. High level:
+
+```text
+User Query/Terms
+    ↓
+Google CSE search (`google_searcher.GoogleSearcher`)
+    ↓ results (Google items + pagemap/metatags)
+AI-driven extraction (`data_extractor.LinkedInDataExtractor`)
+  - Clean/normalize LinkedIn URLs
+  - Extract name/title/location/company from metatags/snippet
+  - Use OpenAI to structure fields (position, company, counts)
+  - Optional: derive company website/domain (multi-tier, AI-enabled)
+    ↓ profiles (raw structured)
+Validation & cleanup (`data_validator.DataValidator`)
+  - validate_all_profiles → remove invalid
+  - remove_duplicates → dedupe by canonical URL
+  - clean_profile_data → normalize fields
+    ↓ cleaned profiles
+Optional write to DB (when `--write-db`) via `pipelines.ingest_profiles`
+  - Upsert people (`db.repos.people_repo`)
+  - Upsert/link companies by domain (`db.repos.companies_repo`)
+    ↓ SQLite schema (`db/schema.py`)
+Optional company enrichment (`cli.py enrich` → `pipelines.enrich_companies`)
+  - Provider: stub | OpenAI | Linkup (`services/enrichment_service`)
+  - Update company attributes (industries, size, website, legal form, news)
+```
+
+### Step-by-step (no-code journey)
+- Search: We query Google Custom Search for `site:linkedin.com/in` profiles based on your terms.
+- Extract: For each result, we parse metatags/snippets and use an LLM to structure profile fields. If AI is enabled, we also attempt company website/domain discovery cost‑effectively.
+- Validate: We validate required fields, remove obvious duplicates, and normalize text/URLs.
+- Output: By default, results are printed as a summary; optionally, we transform to a normalized Person schema.
+- Persist (optional): If `--write-db` is used, we upsert People and Companies into SQLite and link them by domain.
+- Enrich (optional branch): Separately, you can run `cli.py enrich` to fill company attributes (industries, size, legal form, website, news). This step reads pending companies from the DB and writes back enrichment.
+
+### Linear vs branches
+- Core run (`main.py`): linear search → extract → validate/clean → print; with optional AI website discovery inside extraction, and optional DB write at the end.
+- Enrichment: separate branch triggered via CLI after ingestion. It does not run during the core search unless you invoke the CLI enrich command.

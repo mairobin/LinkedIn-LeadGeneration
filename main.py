@@ -78,11 +78,6 @@ Examples:
         help='Perform a dry run without making API calls'
     )
 
-    parser.add_argument(
-        '--use-ai',
-        action='store_true',
-        help='Use AI-powered extraction for better accuracy (requires OpenAI API key)'
-    )
 
     parser.add_argument(
         '--include-raw-results',
@@ -248,9 +243,7 @@ def main():
             # Initialize extractor with AI option
             settings = get_settings()
             openai_api_key = settings.openai_api_key
-            use_ai = args.use_ai and settings.ai_enabled
-            if args.use_ai and not settings.ai_enabled:
-                logging.warning("--use-ai requested but AI_ENABLED=false in settings; proceeding without AI")
+            use_ai = settings.ai_enabled
             extractor = LinkedInDataExtractor(
                 use_ai=use_ai,
                 openai_api_key=openai_api_key,
@@ -289,7 +282,7 @@ def main():
         cleaned_profiles = [validator.clean_profile_data(profile) for profile in unique_profiles]
 
         # Enhance with website information if AI is enabled
-        if args.use_ai:
+        if settings.ai_enabled:
             logging.info("Enhancing profiles with company websites...")
             cleaned_profiles = extractor.enhance_profiles_with_websites(cleaned_profiles)
 

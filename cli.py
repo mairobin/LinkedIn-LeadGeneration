@@ -49,17 +49,24 @@ def _stub_fetcher(name: str, domain: str):
 def cmd_enrich(args):
     conn = get_connection(args.db)
     schema.bootstrap(conn)
-    fetcher = _stub_fetcher
-    if getattr(args, "use_linkup", False):
-        def _linkup_fetch(name: str, domain: str):
-            data = fetch_company_enrichment_linkup(name, domain)
-            return data if data else _stub_fetcher(name, domain)
-        fetcher = _linkup_fetch
-    elif getattr(args, "use_ai", False):
+    settings = get_settings()
+    provider = (settings.ai_provider or "stub").lower()
+
+    if provider == "openai":
         def _ai_fetch(name: str, domain: str):
             data = fetch_company_enrichment(name, domain)
             return data if data else _stub_fetcher(name, domain)
         fetcher = _ai_fetch
+    elif provider == "linkup":
+        def _linkup_fetch(name: str, domain: str):
+            data = fetch_company_enrichment_linkup(name, domain)
+            return data if data else _stub_fetcher(name, domain)
+        fetcher = _linkup_fetch
+    else:
+        # Stub provider allowed only in test environment
+        if (settings.run_env or "").lower() != "test":
+            raise RuntimeError("Stub enrichment provider is only allowed when RUN_ENV=test")
+        fetcher = _stub_fetcher
     def _progress(cur, total, company_id, name):
         print(f"[{cur}/{total}] Enriching company_id={company_id} name={name}")
     updated = enrich_batch(conn, fetcher, limit=getattr(args, "limit", 50), on_progress=_progress if getattr(args, "progress", False) else None)
@@ -237,9 +244,7 @@ def main():
 	p_snap.add_argument("--input", required=True, help="Path to JSON file (profiles or array)")
 	p_snap.set_defaults(func=cmd_snapshot)
 
-	p_enr = sub.add_parser("enrich", help="Run enrichment batch (stub by default; --use-ai OpenAI or --use-linkup)")
-	p_enr.add_argument("--use-ai", action="store_true", help="Use OpenAI to fetch enrichment; falls back to stub if unavailable")
-	p_enr.add_argument("--use-linkup", action="store_true", help="Use Linkup to fetch enrichment; falls back to stub if unavailable")
+    p_enr = sub.add_parser("enrich", help="Run enrichment batch (provider from settings.ai_provider)")
 	p_enr.add_argument("--limit", type=int, default=10, help="Max companies to enrich in this run (default: 10)")
 	p_enr.add_argument("--progress", action="store_true", help="Print progress for each company")
 	p_enr.set_defaults(func=cmd_enrich)
