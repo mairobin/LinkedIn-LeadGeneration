@@ -39,6 +39,7 @@ class Settings:
     run_env: str
 
     openai_api_key: str | None
+    openai_model: str | None
     linkup_api_key: str | None
 
     # AI gating
@@ -55,6 +56,11 @@ class Settings:
     search_rate_limit_qps: float
     enrich_concurrency: int
     http_timeout_seconds: int
+
+    # Optional: Google Places / Maps (for future company sources)
+    google_places_api_key: str | None = None
+    google_places_text_search_url: str = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+    google_places_details_url: str = "https://maps.googleapis.com/maps/api/place/details/json"
 
 
 @lru_cache(maxsize=1)
@@ -89,6 +95,7 @@ def get_settings() -> Settings:
         db_path=os.getenv("DB_PATH", "leads.db"),
         run_env=os.getenv("RUN_ENV", "local"),
         openai_api_key=openai_api_key,
+        openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
         linkup_api_key=linkup_api_key,
         ai_enabled=ai_enabled,
         ai_provider=ai_provider,
@@ -114,6 +121,9 @@ def get_settings() -> Settings:
         search_rate_limit_qps=float(os.getenv("SEARCH_RATE_LIMIT_QPS", "2")),
         enrich_concurrency=int(os.getenv("ENRICH_CONCURRENCY", "2")),
         http_timeout_seconds=int(os.getenv("HTTP_TIMEOUT_SECONDS", "20")),
+        google_places_api_key=os.getenv("GOOGLE_PLACES_API_KEY"),
+        google_places_text_search_url=os.getenv("GOOGLE_PLACES_TEXT_SEARCH_URL", "https://maps.googleapis.com/maps/api/place/textsearch/json"),
+        google_places_details_url=os.getenv("GOOGLE_PLACES_DETAILS_URL", "https://maps.googleapis.com/maps/api/place/details/json"),
     )
 
 

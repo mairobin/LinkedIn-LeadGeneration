@@ -23,10 +23,12 @@ class PeopleRepo:
         info_raw: Optional[str] = None,
         insights_text: Optional[str] = None,
         lookup_date: Optional[str] = None,
+        source_name: Optional[str] = None,
+        source_query: Optional[str] = None,
     ) -> int:
         sql = (
-            "INSERT INTO people (linkedin_profile, first_name, last_name, title_current, email, location_text, connections_linkedin, followers_linkedin, website_info, phone_info, info_raw, insights_text, lookup_date) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, datetime('now'))) "
+            "INSERT INTO people (linkedin_profile, first_name, last_name, title_current, email, location_text, connections_linkedin, followers_linkedin, website_info, phone_info, info_raw, insights_text, lookup_date, source_name, source_query) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, datetime('now')), ?, ?) "
             "ON CONFLICT(linkedin_profile) DO UPDATE SET "
             " first_name = COALESCE(excluded.first_name, people.first_name), "
             " last_name = COALESCE(excluded.last_name, people.last_name), "
@@ -39,12 +41,14 @@ class PeopleRepo:
             " phone_info = COALESCE(excluded.phone_info, people.phone_info), "
             " info_raw = COALESCE(excluded.info_raw, people.info_raw), "
             " insights_text = COALESCE(excluded.insights_text, people.insights_text), "
-            " lookup_date = COALESCE(excluded.lookup_date, people.lookup_date) "
+            " lookup_date = COALESCE(excluded.lookup_date, people.lookup_date), "
+            " source_name = COALESCE(excluded.source_name, people.source_name), "
+            " source_query = COALESCE(excluded.source_query, people.source_query) "
             "RETURNING id;"
         )
         cur = self.conn.cursor()
         cur.execute(sql, (
-            linkedin_profile, first_name, last_name, title_current, email, location_text, connections_linkedin, followers_linkedin, website_info, phone_info, info_raw, insights_text, lookup_date
+            linkedin_profile, first_name, last_name, title_current, email, location_text, connections_linkedin, followers_linkedin, website_info, phone_info, info_raw, insights_text, lookup_date, source_name, source_query
         ))
         row = cur.fetchone()
         return int(row[0])

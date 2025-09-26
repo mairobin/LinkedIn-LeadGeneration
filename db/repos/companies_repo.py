@@ -8,7 +8,7 @@ class CompaniesRepo:
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
 
-    def upsert_by_domain(self, name: Optional[str], domain: Optional[str], website: Optional[str]) -> int:
+    def upsert_by_domain(self, name: Optional[str], domain: Optional[str], website: Optional[str], source_name: Optional[str] = None, source_query: Optional[str] = None) -> int:
         # Manual upsert to avoid relying on UNIQUE constraint semantics
         cur = self.conn.cursor()
         # Ensure we never insert a NULL name to satisfy stricter schemas
@@ -20,20 +20,20 @@ class CompaniesRepo:
                 company_id = int(row[0])
                 # Update minimal fields when provided
                 cur.execute(
-                    "UPDATE companies SET name = COALESCE(?, name), website = COALESCE(?, website) WHERE id = ?",
-                    (safe_name, website, company_id),
+                    "UPDATE companies SET name = COALESCE(?, name), website = COALESCE(?, website), source_name = COALESCE(?, source_name), source_query = COALESCE(?, source_query) WHERE id = ?",
+                    (safe_name, website, source_name, source_query, company_id),
                 )
                 self.conn.commit()
                 return company_id
             # Insert new with domain
             cur.execute(
-                "INSERT INTO companies (name, domain, website) VALUES (?, ?, ?)",
-                (safe_name, domain, website),
+                "INSERT INTO companies (name, domain, website, source_name, source_query) VALUES (?, ?, ?, ?, ?)",
+                (safe_name, domain, website, source_name, source_query),
             )
             self.conn.commit()
             return int(cur.lastrowid)
         # No domain yet: insert a stub with name only (duplicates allowed)
-        cur.execute("INSERT INTO companies (name) VALUES (?)", (safe_name,))
+        cur.execute("INSERT INTO companies (name, source_name, source_query) VALUES (?, ?, ?)", (safe_name, source_name, source_query))
         self.conn.commit()
         return int(cur.lastrowid)
 

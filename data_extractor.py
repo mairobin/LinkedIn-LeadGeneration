@@ -12,14 +12,19 @@ try:
 except ImportError:
     AI_AVAILABLE = False
 
+from utils.llm_logger import log_call, sha256_text  # added
+
 class AIProfileExtractor:
     """Uses OpenAI to extract structured data from LinkedIn profiles."""
 
     def __init__(self, api_key: str, model: str = None):
         self.client = openai.OpenAI(api_key=api_key)
+        from config.settings import get_settings  # late import to avoid cycles
+        settings = get_settings()
         # Per-operation model selection (cost-efficient defaults)
-        self.model_chat = "gpt-4o-mini"
-        self.model_responses = "gpt-4o-mini"
+        chosen_model = model or settings.openai_model or "gpt-4o-mini"
+        self.model_chat = chosen_model
+        self.model_responses = chosen_model
         logging.info(
             f"AI extractor initialized with models: chat={self.model_chat}, responses={self.model_responses}"
         )
@@ -57,12 +62,54 @@ class AIProfileExtractor:
             else:
                 completion_params["max_tokens"] = 500
 
-            response = self.client.chat.completions.create(**completion_params)
+            # timing start
+            import time as _time
+            _t0 = _time.time()
+            from services.llm_client import LLMClient
+            llm = LLMClient()
+            response = llm.chat(
+                use_case="profile_extraction",
+                messages=completion_params["messages"],
+                prompt_name="profile_extraction_v1",
+                prompt_text=prompt,
+                temperature=completion_params.get("temperature", 0),
+            )
+            _dt_ms = int((_time.time() - _t0) * 1000)
             self.extraction_stats['api_calls_made'] += 1
 
             content = response.choices[0].message.content.strip()
             json_start = content.find('{')
             json_end = content.rfind('}') + 1
+
+            usage_obj = None
+            try:
+                # openai v1 usage shape may include prompt/comp tokens
+                usage = getattr(response, "usage", None)
+                if usage:
+                    usage_obj = {
+                        "prompt_tokens": getattr(usage, "prompt_tokens", None),
+                        "completion_tokens": getattr(usage, "completion_tokens", None),
+                        "total_tokens": getattr(usage, "total_tokens", None),
+                    }
+            except Exception:
+                usage_obj = None
+
+            # log call (non-blocking best-effort)
+            try:
+                log_call(
+                    caller="AIProfileExtractor.extract_structured_data",
+                    provider="openai",
+                    model=self.model_chat,
+                    operation="chat.completions.create",
+                    prompt_name="profile_extraction_v1",
+                    prompt_hash=sha256_text(prompt),
+                    duration_ms=_dt_ms,
+                    status="ok",
+                    usage=usage_obj,
+                    extras={"profile_name": profile_name}
+                )
+            except Exception:
+                pass
 
             if json_start >= 0 and json_end > json_start:
                 json_content = content[json_start:json_end]
@@ -76,85 +123,56 @@ class AIProfileExtractor:
 
         except json.JSONDecodeError as e:
             logging.warning(f"Failed to parse AI response JSON for {profile_name}: {e}")
+            try:
+                log_call(
+                    caller="AIProfileExtractor.extract_structured_data",
+                    provider="openai",
+                    model=self.model_chat,
+                    operation="chat.completions.create",
+                    prompt_name="profile_extraction_v1",
+                    prompt_hash=sha256_text(prompt),
+                    status="error",
+                    error=str(e)
+                )
+            except Exception:
+                pass
         except Exception as e:
             logging.error(f"AI extraction failed for {profile_name}: {e}")
+            try:
+                log_call(
+                    caller="AIProfileExtractor.extract_structured_data",
+                    provider="openai",
+                    model=self.model_chat,
+                    operation="chat.completions.create",
+                    prompt_name="profile_extraction_v1",
+                    prompt_hash=sha256_text(prompt),
+                    status="error",
+                    error=str(e)
+                )
+            except Exception:
+                pass
 
         self.extraction_stats['ai_extractions_failed'] += 1
         return {}
 
     def _create_extraction_prompt(self, name: str, title: str, summary: str) -> str:
-        """Create a prompt for structured data extraction."""
-        return f"""Extract structured information from this LinkedIn profile and return ONLY a valid JSON object:
-
-Name: {name}
-Title: {title}
-Summary: {summary}
-
-Extract the following fields (return null for any field you cannot determine confidently):
-
-1. current_position: Person's current job title/role
-2. company: Current company name
-3. location: Geographic location (city, country)
-4. follower_count: LinkedIn follower count (if mentioned)
-5. connection_count: LinkedIn connection count (if mentioned)
-
-Return format (JSON only, no other text):
-{{
-    "current_position": "...",
-    "company": "...",
-    "location": "...",
-    "follower_count": "...",
-    "connection_count": "..."
-}}
-
-COMPANY EXTRACTION RULES (CRITICAL - THESE ARE OBVIOUS PATTERNS):
-
-STOP BEING CONSERVATIVE! These patterns are 100% reliable for current companies:
-
-1. EXPERIENCE/BERUFSERFAHRUNG PATTERNS (HIGHEST CONFIDENCE):
-- "Experience: [COMPANY]" → ALWAYS extract COMPANY
-- "Berufserfahrung: [COMPANY]" → ALWAYS extract COMPANY ("Berufserfahrung" = German "Experience")
-- "· Experience: [COMPANY] ·" → ALWAYS extract COMPANY
-- "· Berufserfahrung: [COMPANY] ·" → ALWAYS extract COMPANY
-
-2. JOB TITLE + PREPOSITION PATTERNS:
-- "[Title] at [COMPANY]" → extract COMPANY
-- "[Title] bei [COMPANY]" → extract COMPANY ("bei" = German "at")
-- "[Title] of [COMPANY]" → extract COMPANY
-- "[Title] von [COMPANY]" → extract COMPANY ("von" = German "of")
-- "[Title] @ [COMPANY]" → extract COMPANY
-- "[Title] | [COMPANY]" → extract COMPANY
-
-3. OBVIOUS EXAMPLES YOU MUST EXTRACT:
-- "Experience: ElringKlinger" → company: "ElringKlinger"
-- "Experience: IPETRONIK GmbH & Co. KG" → company: "IPETRONIK GmbH & Co. KG"
-- "Experience: Daimler Truck AG" → company: "Daimler Truck AG"
-- "Berufserfahrung: MAN Truck & Bus SE" → company: "MAN Truck & Bus SE"
-- "Berufserfahrung: Boerse Stuttgart Group" → company: "Boerse Stuttgart Group"
-- "Experience: Eviden" → company: "Eviden"
-- "Head of Sales at Daimler Buses" → company: "Daimler Buses"
-- "CEO at Germany Trade & Invest" → company: "Trade & Invest"
-
-4. CONFIDENCE INDICATORS (EXTRACT IMMEDIATELY):
-✓ Text after "Experience:" or "Berufserfahrung:"
-✓ Text after: at, bei, of, von, @, |
-✓ Company suffixes: GmbH, AG, Inc, LLC, Ltd, Corp, Group, SE
-✓ Proper nouns after job titles
-
-5. ONLY AVOID IF:
-✗ Explicitly marked as past: "former", "previously", "ex-"
-✗ Educational institutions: "University", "School", "Institut" (unless they work there)
-✗ Geographic locations without company context
-
-CRITICAL: If you see "Experience:" or "Berufserfahrung:" followed by a company name, ALWAYS extract it. These are current employer indicators with 99% confidence.
-
-OTHER RULES:
-- For follower_count: look for patterns like "1K followers", "4540 Follower", "2.5K followers"
-- For connection_count: look for patterns like "500+ connections", "1K+ Kontakte", "5000 connections"
-- For location: prefer current location over past locations
-- Extract exact numbers/text as shown (e.g. "1K", "500+", "2.5K")
-- Use null only if you really cannot find the company with confidence
-- Return only the JSON object, no explanations"""
+        """Create a prompt for structured data extraction from external template."""
+        from pathlib import Path
+        prompt_path = Path(__file__).resolve().parent / "prompts" / "profile_extraction_prompt.txt"
+        try:
+            template = prompt_path.read_text(encoding="utf-8")
+        except Exception:
+            template = (
+                "Extract structured information from this LinkedIn profile and return ONLY a valid JSON object.\n"
+                "Fields: current_position, company, location, follower_count, connection_count.\n"
+                "Return JSON only."
+            )
+        return (
+            template
+            .replace("{{NAME}}", name or "")
+            .replace("{{TITLE}}", title or "")
+            .replace("{{SUMMARY}}", summary or "")
+        )
 
     def _validate_extracted_data(self, data: Dict) -> Dict[str, Optional[str]]:
         """Validate and clean AI-extracted data."""
@@ -196,10 +214,13 @@ OTHER RULES:
         
         try:
             # Use OpenAI Responses API with web search tool
-            response = self.client.responses.create(
-                model=self.model_responses,
+            from services.llm_client import LLMClient
+            llm = LLMClient()
+            response = llm.responses(
+                use_case="website_discovery_responses",
+                input_text=f"Find the official website URL of the company '{company_name.strip()}'. Return only the URL.",
                 tools=[{"type": "web_search"}],
-                input=f"Find the official website URL of the company '{company_name.strip()}'. Return only the URL."
+                prompt_name="website_discovery_query_v1",
             )
 
             # Extract the model output - find the message in the output

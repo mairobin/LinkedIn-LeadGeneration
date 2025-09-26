@@ -7,21 +7,21 @@ raw structured data for future AI processing.
 """
 
 import argparse
-import json
 import logging
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+import os  # added
+import json  # added
 
-from google_searcher import GoogleSearcher
-from data_extractor import LinkedInDataExtractor
-from data_validator import DataValidator
 from config.settings import get_settings
 from utils.logging_setup import init_logging
+import sources  # noqa: F401 ensure registration
+from data_validator import DataValidator
 
 
  
+
 
 
 def parse_arguments():
@@ -48,6 +48,13 @@ Examples:
         '--terms', '-t',
         nargs='+',
         help='Search terms as separate arguments (e.g., --terms "Software Engineer" "Stuttgart" "Python")'
+    )
+
+    # Source options
+    parser.add_argument(
+        '--source', '-s',
+        action='append',
+        help='Source name to run (repeatable). Default: linkedin_people_google',
     )
 
     # Output options
@@ -139,6 +146,40 @@ def _parse_connections(value):
     return min(parsed, 500)
 
 
+def _llm_usage_for_run(run_id: str):
+    """Aggregate LLM usage from logs/llm_calls.jsonl for the given run_id.
+
+    Returns dict like { 'openai': {'calls': N, 'tokens': T}, 'linkup': {...} }
+    """
+    result = {}
+    try:
+        log_path = Path(os.getenv("LLM_LOG_PATH", "logs/llm_calls.jsonl"))
+        if not log_path.exists():
+            return result
+        with log_path.open("r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    rec = json.loads(line)
+                except Exception:
+                    continue
+                if not isinstance(rec, dict):
+                    continue
+                if rec.get("run_id") != run_id:
+                    continue
+                provider = rec.get("provider") or "unknown"
+                usage = rec.get("usage") or {}
+                total_tokens = usage.get("total_tokens") or 0
+                bucket = result.setdefault(provider, {"calls": 0, "tokens": 0})
+                bucket["calls"] += 1
+                try:
+                    bucket["tokens"] += int(total_tokens)
+                except Exception:
+                    pass
+    except Exception:
+        return result
+    return result
+
+
 def map_to_person_schema(profiles, lookup_date):
     """Map extracted profiles to the Person schema (inline, simple)."""
     mapped = []
@@ -167,22 +208,6 @@ def map_to_person_schema(profiles, lookup_date):
     return mapped
 
 
-def ensure_output_directory():
-    """(Deprecated) No-op: JSON file creation removed in favor of console output."""
-    return Path(get_settings().raw_output_dir)
-
-
-def generate_output_filename(custom_filename: str = None) -> str:
-    """(Deprecated) Kept for backwards-compatibility; files are no longer written."""
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    return custom_filename or f'raw_leads_{timestamp}.json'
-
-
-def save_results(data: dict, filename: str, output_dir: Path) -> Path:
-    """(Deprecated) Disabled: no file writes. Returns a dummy path."""
-    return output_dir / filename
-
-
 def print_summary(data: dict, api_usage: dict, output_path: Path = None):
     """Print summary of the extraction process."""
     metadata = data.get('metadata', {})
@@ -204,6 +229,19 @@ def print_summary(data: dict, api_usage: dict, output_path: Path = None):
     print(f"  Invalid Profiles: {extraction_stats.get('invalid_profiles', 0)}")
     print()
     print(f"API Usage: {api_usage.get('estimated_daily_limit_used', 'N/A')}")
+    # LLM usage summary (per provider) for current RUN_ID if tracing enabled
+    try:
+        run_id = os.getenv("RUN_ID")
+        if run_id and os.getenv("LLM_TRACE", "false").lower() in ("1", "true", "yes", "on"):
+            usage = _llm_usage_for_run(run_id)
+            if usage:
+                print("LLM Usage:")
+                for provider, stats in usage.items():
+                    calls = stats.get('calls', 0)
+                    tokens = stats.get('tokens', 0)
+                    print(f"  {provider}: calls={calls}, tokens={tokens}")
+    except Exception:
+        pass
     if output_path:
         print(f"Output File: {output_path}")
     print("="*60)
@@ -217,6 +255,14 @@ def main():
 
         # Setup logging (idempotent)
         init_logging(args.log_level)
+
+        # Ensure a RUN_ID for this process to correlate logs
+        try:
+            if not os.getenv("RUN_ID"):
+                import uuid as _uuid
+                os.environ["RUN_ID"] = _uuid.uuid4().hex
+        except Exception:
+            pass
 
         # Determine search terms
         if args.query:
@@ -233,100 +279,87 @@ def main():
             print("Dry run completed. Search terms:", search_terms)
             return
 
-        # Ensure output directory exists
-        output_dir = ensure_output_directory()
-
-        # Initialize components
+        # Resolve sources
+        sources = args.source or ["linkedin_people_google"]
         try:
-            searcher = GoogleSearcher()
-
-            # Initialize extractor with AI option
-            settings = get_settings()
-            openai_api_key = settings.openai_api_key
-            use_ai = settings.ai_enabled
-            extractor = LinkedInDataExtractor(
-                use_ai=use_ai,
-                openai_api_key=openai_api_key,
-                openai_model=None,
-            )
-            validator = DataValidator()
-        except ValueError as e:
-            logging.error(f"Configuration error: {e}")
-            logging.error("Please check your .env file and ensure API keys are set")
+            from sources.registry import get_source
+        except Exception as e:
+            logging.error(f"Failed to load sources registry: {e}")
             sys.exit(1)
 
-        # Execute search
-        logging.info("Starting Google search...")
-        search_results = searcher.search_linkedin_profiles(search_terms, args.max_results)
+        all_people = []
+        all_companies = []
+        api_usage = { 'api_calls_made': 0, 'estimated_daily_limit_used': 'N/A' }
+        combined_stats = {}
 
-        if not search_results:
-            logging.error("No search results returned")
-            sys.exit(1)
+        for src_name in sources:
+            logging.info(f"Running source: {src_name}")
+            try:
+                src = get_source(src_name)
+            except KeyError:
+                logging.error(f"Unknown source: {src_name}")
+                sys.exit(1)
+            data = src.run(search_terms, args.max_results)
+            # Attach provenance to each record
+            if data:
+                for rec in data:
+                    try:
+                        rec['source_name'] = getattr(src, 'source_name', src_name)
+                        rec['source_query'] = ' '.join(search_terms)
+                    except Exception:
+                        pass
+            if getattr(src, 'entity_type', None) == 'person':
+                all_people.extend(data or [])
+            elif getattr(src, 'entity_type', None) == 'company':
+                all_companies.extend(data or [])
 
-        # Extract profile data
-        logging.info("Extracting profile data...")
-        profiles = extractor.extract_all_profiles(search_results)
-
-        if not profiles:
-            logging.error("No profiles extracted successfully")
-            sys.exit(1)
-
-        # Validate and clean data
-        logging.info("Validating profile data...")
-        valid_profiles = validator.validate_all_profiles(profiles)
-
-        # Remove duplicates
-        unique_profiles = validator.remove_duplicates(valid_profiles)
-
-        # Clean profile data
-        cleaned_profiles = [validator.clean_profile_data(profile) for profile in unique_profiles]
-
-        # Enhance with website information if AI is enabled
-        if settings.ai_enabled:
-            logging.info("Enhancing profiles with company websites...")
-            cleaned_profiles = extractor.enhance_profiles_with_websites(cleaned_profiles)
-
-        # Get statistics
-        extraction_stats = extractor.get_extraction_stats()
-        validation_stats = validator.get_validation_stats()
-        api_usage = searcher.get_api_usage()
-
-        # Combine stats
-        combined_stats = {**extraction_stats, **validation_stats}
-
-        # Format output
-        search_metadata = {
-            'query': searcher.format_linkedin_query(search_terms),
-            'search_terms': search_terms
-        }
-
-        # Include raw search results if requested
-        raw_results = search_results if args.include_raw_results else None
-
-        # Transform profiles to new Person schema for output
+        # Prepare output and stats
+        validator = DataValidator()
         lookup_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-        transformed_profiles = map_to_person_schema(cleaned_profiles, lookup_date)
+
+        transformed_profiles = []
+        if all_people:
+            # Map people to Person schema for output/ingest
+            transformed_profiles = map_to_person_schema(all_people, lookup_date)
+            # Preserve provenance on mapped profiles
+            for src_rec, mapped in zip(all_people, transformed_profiles):
+                if isinstance(src_rec, dict) and isinstance(mapped, dict):
+                    if 'source_name' in src_rec:
+                        mapped['source_name'] = src_rec.get('source_name')
+                    if 'source_query' in src_rec:
+                        mapped['source_query'] = src_rec.get('source_query')
 
         output_data = validator.format_output_structure(
-            transformed_profiles, search_metadata, combined_stats, api_usage, raw_results
+            transformed_profiles,
+            { 'query': ' '.join(search_terms), 'search_terms': search_terms },
+            {},
+            api_usage,
+            None
         )
 
-        # Print summary to console (no JSON file written)
         print_summary(output_data, api_usage)
 
-        # Optional: write normalized tables (people + companies) and link by domain
+        # Optional DB writes
         if args.write_db:
             try:
                 from db.connection import get_connection
                 from db import schema as _schema
                 from pipelines.ingest_profiles import ingest_profiles
+                from pipelines.ingest_companies import ingest_companies
 
                 conn = get_connection(args.db_path)
                 _schema.bootstrap(conn)
-                # Use the already transformed person schema for ingestion
-                processed = ingest_profiles(conn, transformed_profiles)
-                logging.info(f"Normalized DB write complete: {processed} profiles processed → people/companies")
-                # Print a concise preview of top 5 leads
+                processed_people = 0
+                processed_companies = 0
+                if transformed_profiles:
+                    processed_people = ingest_profiles(conn, transformed_profiles)
+                if all_companies:
+                    # Validate/dedupe/clean companies before ingestion
+                    companies_valid = validator.validate_all_companies(all_companies)
+                    companies_unique = validator.remove_company_duplicates(companies_valid)
+                    companies_cleaned = [validator.clean_company_data(c) for c in companies_unique]
+                    processed_companies = ingest_companies(conn, companies_cleaned)
+                logging.info(f"DB write complete: people={processed_people}, companies={processed_companies}")
                 preview = output_data.get('profiles', [])[:5]
                 if preview:
                     print("Top 5 leads:")

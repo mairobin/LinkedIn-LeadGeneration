@@ -1,0 +1,68 @@
+Extract structured information from this LinkedIn profile and return ONLY a valid JSON object.
+
+Name: {{NAME}}
+Title: {{TITLE}}
+Summary: {{SUMMARY}}
+
+Extract the following fields (return null for any field you cannot determine confidently):
+
+1. current_position: Person's current job title/role
+2. company: Current company name
+3. location: Geographic location (city, country)
+4. follower_count: LinkedIn follower count (if mentioned)
+5. connection_count: LinkedIn connection count (if mentioned)
+
+Return format (JSON only, no other text):
+{
+    "current_position": "...",
+    "company": "...",
+    "location": "...",
+    "follower_count": "...",
+    "connection_count": "..."
+}
+
+COMPANY EXTRACTION RULES:
+
+1. EXPERIENCE/BERUFSERFAHRUNG PATTERNS (HIGHEST CONFIDENCE):
+- "Experience: [COMPANY]" → extract COMPANY
+- "Berufserfahrung: [COMPANY]" → extract COMPANY
+- "· Experience: [COMPANY] ·" → extract COMPANY
+- "· Berufserfahrung: [COMPANY] ·" → extract COMPANY
+
+2. JOB TITLE + PREPOSITION PATTERNS:
+- "[Title] at [COMPANY]" → extract COMPANY
+- "[Title] bei [COMPANY]" → extract COMPANY ("bei" = German "at")
+- "[Title] of [COMPANY]" → extract COMPANY
+- "[Title] von [COMPANY]" → extract COMPANY ("von" = German "of")
+- "[Title] @ [COMPANY]" → extract COMPANY
+- "[Title] | [COMPANY]" → extract COMPANY
+
+3. EXAMPLES:
+- "Experience: ElringKlinger" → company: "ElringKlinger"
+- "Experience: IPETRONIK GmbH & Co. KG" → company: "IPETRONIK GmbH & Co. KG"
+- "Experience: Daimler Truck AG" → company: "Daimler Truck AG"
+- "Berufserfahrung: MAN Truck & Bus SE" → company: "MAN Truck & Bus SE"
+- "Berufserfahrung: Boerse Stuttgart Group" → company: "Boerse Stuttgart Group"
+- "Experience: Eviden" → company: "Eviden"
+- "Head of Sales at Daimler Buses" → company: "Daimler Buses"
+- "CEO at Germany Trade & Invest" → company: "Trade & Invest"
+
+4. CONFIDENCE INDICATORS:
+✓ After "Experience:" or "Berufserfahrung:"
+✓ After: at, bei, of, von, @, |
+✓ Company suffixes: GmbH, AG, Inc, LLC, Ltd, Corp, Group, SE
+✓ Proper nouns after job titles
+
+5. AVOID IF:
+✗ Explicitly past: "former", "previously", "ex-"
+✗ Pure educational institutions (unless they work there)
+✗ Geographic locations without company context
+
+Rules for numbers:
+- follower_count: patterns like "1K followers", "4540 Follower", "2.5K followers"
+- connection_count: patterns like "500+ connections", "1K+ Kontakte", "5000 connections"
+
+Return only the JSON object. Do not include explanations.
+
+
+

@@ -23,6 +23,8 @@ def bootstrap(conn: sqlite3.Connection) -> None:
             "  business_model_json TEXT,\n"
             "  products_json TEXT,\n"
             "  recent_news_json TEXT,\n"
+            "  source_name TEXT,\n"
+            "  source_query TEXT,\n"
             "  last_enriched_at TEXT\n"
             ")" 
         )
@@ -52,6 +54,8 @@ def bootstrap(conn: sqlite3.Connection) -> None:
             "  status TEXT,\n"
             "  notes TEXT,\n"
             "  last_interaction_date TEXT,\n"
+            "  source_name TEXT,\n"
+            "  source_query TEXT,\n"
             "  company_id INTEGER,\n"
             "  FOREIGN KEY(company_id) REFERENCES companies(id) ON DELETE SET NULL\n"
             ")"
@@ -100,6 +104,24 @@ def bootstrap(conn: sqlite3.Connection) -> None:
         pass
     try:
         cur.execute("ALTER TABLE people ADD COLUMN last_interaction_date TEXT;")
+    except Exception:
+        pass
+    # Backfill provenance columns for people
+    try:
+        cur.execute("ALTER TABLE people ADD COLUMN source_name TEXT;")
+    except Exception:
+        pass
+    try:
+        cur.execute("ALTER TABLE people ADD COLUMN source_query TEXT;")
+    except Exception:
+        pass
+    # Backfill provenance columns for companies
+    try:
+        cur.execute("ALTER TABLE companies ADD COLUMN source_name TEXT;")
+    except Exception:
+        pass
+    try:
+        cur.execute("ALTER TABLE companies ADD COLUMN source_query TEXT;")
     except Exception:
         pass
     cur.execute("CREATE INDEX IF NOT EXISTS idx_people_company_id ON people(company_id);")

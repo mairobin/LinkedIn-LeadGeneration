@@ -11,6 +11,8 @@ from config.settings import get_settings
 from services.domain_utils import extract_apex_domain
 """All env loading is centralized in config.settings; no direct dotenv here."""
 
+from utils.llm_logger import log_call, sha256_text  # added
+
 
 PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "enrichment_prompt.txt"
 
@@ -117,8 +119,9 @@ def fetch_company_enrichment(company_name: str, domain: Optional[str]) -> Option
         return None
 
     try:
-        from openai import OpenAI
-        client = OpenAI(api_key=api_key)
+        from services.llm_client import LLMClient
+        from config.llm_routes import ROUTES
+        llm = LLMClient()
 
         prompt = _load_prompt_template()
         homepage_url = None
@@ -135,18 +138,74 @@ def fetch_company_enrichment(company_name: str, domain: Optional[str]) -> Option
             context = f"\nWebsite URL: {homepage_url}\nWebsite excerpt (truncated):\n{page_text}\n"
         user_msg = f"{prompt}\n\n{target}{context}"
 
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            temperature=0,
+        # If routes select Linkup, delegate to Linkup path
+        route = ROUTES.get("company_enrichment", {})
+        provider = route.get("provider", "openai")
+        if provider == "linkup":
+            return fetch_company_enrichment_linkup(company_name, apex or domain)
+
+        # Otherwise use OpenAI via wrapper
+        import time as _time
+        _t0 = _time.time()
+        resp = llm.chat(
+            use_case="company_enrichment",
             messages=[
                 {"role": "system", "content": "You are a precise analyst. Output only valid JSON when asked."},
                 {"role": "user", "content": user_msg},
             ],
+            prompt_name=str(PROMPT_PATH.name),
+            prompt_text=prompt,
         )
+        _dt_ms = int((_time.time() - _t0) * 1000)
+
         content = resp.choices[0].message.content if resp.choices else None
         data = _extract_json(content or "")
+
+        # usage capture
+        usage_obj = None
+        try:
+            usage = getattr(resp, "usage", None)
+            if usage:
+                usage_obj = {
+                    "prompt_tokens": getattr(usage, "prompt_tokens", None),
+                    "completion_tokens": getattr(usage, "completion_tokens", None),
+                    "total_tokens": getattr(usage, "total_tokens", None),
+                }
+        except Exception:
+            usage_obj = None
+
+        try:
+            log_call(
+                caller="enrichment_service.fetch_company_enrichment",
+                provider="openai",
+                model=settings.openai_model or "gpt-4o-mini",
+                operation="chat.completions.create",
+                prompt_name=str(PROMPT_PATH.name),
+                prompt_hash=sha256_text(prompt),
+                duration_ms=_dt_ms,
+                status="ok",
+                usage=usage_obj,
+                extras={"company_name": company_name, "domain": domain, "homepage": homepage_url}
+            )
+        except Exception:
+            pass
+
         return data
-    except Exception:
+    except Exception as e:
+        try:
+            log_call(
+                caller="enrichment_service.fetch_company_enrichment",
+                provider="openai",
+                model=settings.openai_model or "gpt-4o-mini",
+                operation="chat.completions.create",
+                prompt_name=str(PROMPT_PATH.name),
+                prompt_hash=sha256_text(try_prompt := _load_prompt_template()),
+                status="error",
+                error=str(e),
+                extras={"company_name": company_name, "domain": domain}
+            )
+        except Exception:
+            pass
         return None
 
 

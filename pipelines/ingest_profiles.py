@@ -68,6 +68,10 @@ def ingest_profiles(conn: sqlite3.Connection, profiles: Iterable[Dict]) -> int:
             insights_text = None
         lookup_date = p.get('Lookup_Date')
 
+        # Capture provenance if present on the transformed profile
+        source_name = p.get('source_name') or None
+        source_query = p.get('source_query') or None
+
         person_id = people.upsert_person(
             linkedin_profile=profile_url,
             first_name=first,
@@ -82,6 +86,8 @@ def ingest_profiles(conn: sqlite3.Connection, profiles: Iterable[Dict]) -> int:
             info_raw=info_raw,
             insights_text=insights_text,
             lookup_date=lookup_date,
+            source_name=source_name,
+            source_query=source_query,
         )
 
         # Determine apex domain
@@ -91,7 +97,7 @@ def ingest_profiles(conn: sqlite3.Connection, profiles: Iterable[Dict]) -> int:
 
         company_id = None
         if domain or company_name:
-            company_id = companies.upsert_by_domain(company_name, domain, website)
+            company_id = companies.upsert_by_domain(company_name, domain, website, source_name=source_name, source_query=source_query)
 
         if company_id:
             people.link_person_to_company(profile_url, company_id)

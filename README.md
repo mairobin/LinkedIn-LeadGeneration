@@ -11,16 +11,18 @@ This project has grown from a basic LinkedIn profile finder into a small data pl
 - **Company enrichment**: Enriches companies via OpenAI or Linkup into a consistent JSON schema (industries, size, website, legal form, etc.).
 - **Utilities and reports**: CLI commands to bootstrap the DB, ingest JSON, run enrichment, deduplicate people, and produce reports.
 - **Cost-aware design**: AI is optional; default flows are non-AI to minimize cost while keeping quality.
+ - **Pluggable sources**: A simple source registry makes it easy to add new people/company sources.
 
 ## Project Structure
 
 ```
 .
 ├── cli.py                     # DB-focused CLI: bootstrap, ingest, enrich, reports, dedupe
-├── main.py                    # Search + extraction runner (JSON output; optional AI)
+├── main.py                    # Multi-source runner (people/companies; optional AI)
 ├── google_searcher.py         # Google Custom Search API integration
 ├── data_extractor.py          # Extraction and heuristic parsing from snippets/meta
 ├── data_validator.py          # Validation utilities (dedupe/quality)
+├── sources/                   # Pluggable sources (LinkedIn people, Maps companies scaffold, etc.)
 ├── services/
 │   ├── enrichment_service.py  # OpenAI/Linkup enrichment, prompt loading
 │   └── domain_utils.py        # URL/domain and LinkedIn URL normalization helpers
@@ -44,7 +46,11 @@ This project has grown from a basic LinkedIn profile finder into a small data pl
 ### File Highlights
 
 - **`cli.py`** - Database-centric commands (bootstrap, ingest JSON, enrich, reports, dedupe)
-- **`main.py`** - Search/extract runner; writes JSON (no DB unless used via CLI ingest)
+- **`main.py`** - Multi-source runner. Select sources with `--source`. Optional DB write with `--write-db`.
+- **`sources/`** - Pluggable sources:
+  - `linkedin_people_google` (active)
+  - `google_maps_companies` (scaffold; returns empty unless `DEMO=true`)
+  - `linkedin_companies_google` (scaffold)
 - **`services/enrichment_service.py`** - Calls OpenAI/Linkup using `prompts/enrichment_prompt.txt`
 - **`pipelines/ingest_profiles.py`** - Normalizes person/company and sets `lookup_date` automatically
 - **`pipelines/enrich_companies.py`** - Saves enrichment and normalizes legal forms
@@ -103,7 +109,20 @@ AI_PROVIDER=linkup python cli.py enrich --db leads.db --limit 20 --progress
 
 ### Basic Search (No AI - Default)
 ```bash
+# Default source is LinkedIn people via Google CSE
 python main.py --query "Software Engineer Stuttgart Python" --max-results 50
+```
+
+### Multi-Source Examples
+```bash
+# LinkedIn people (explicit)
+python main.py --source linkedin_people_google --query "CTO Berlin" --write-db
+
+# Add Google Maps companies (scaffold only; returns empty unless DEMO=true)
+DEMO=true python main.py --source google_maps_companies --terms "AI startups" "Berlin" --write-db
+
+# Combine sources in one run
+DEMO=true python main.py --source linkedin_people_google --source google_maps_companies --query "Founder Munich" --write-db
 ```
 
 ### AI-Enhanced Search with Website Discovery
@@ -123,6 +142,9 @@ python main.py --query "CEO" --include-raw-results --max-results 10
 
 # Verbose logging
 python main.py --query "Engineer" --log-level DEBUG
+
+# Run tests (do not touch leads.db; DB tests use tmp files)
+pytest -q
 ```
 
 ## Output
@@ -187,8 +209,8 @@ Key settings are centralized in `config/settings.py` (loaded from environment or
 
 - **`DEFAULT_MAX_RESULTS`** - Default number of profiles to collect (10)
 - **`SEARCH_DELAY`** - Delay between API requests (seconds)
-- **`RAW_OUTPUT_DIR`** - Output directory for JSON files ("output")
 - **`MAX_RETRIES`** - Retries for failed Google calls
+- (Legacy) `RAW_OUTPUT_DIR` - Kept for compatibility; no files are written by `main.py`.
 
 Environment variables (`.env`):
 - `GOOGLE_API_KEY`, `GOOGLE_CSE_ID` — required for search
@@ -218,9 +240,9 @@ See `requirements.txt` for complete list of Python dependencies.
 The system follows a mostly linear flow with optional branches for AI enhancement and enrichment. High level:
 
 ```text
-User Query/Terms
+User Query/Terms (`--query` or `--terms`)
     ↓
-Google CSE search (`google_searcher.GoogleSearcher`)
+Selected source(s) (`--source`): e.g., LinkedIn people, Maps companies (scaffold)
     ↓ results (Google items + pagemap/metatags)
 AI-driven extraction (`data_extractor.LinkedInDataExtractor`)
   - Clean/normalize LinkedIn URLs
@@ -233,9 +255,9 @@ Validation & cleanup (`data_validator.DataValidator`)
   - remove_duplicates → dedupe by canonical URL
   - clean_profile_data → normalize fields
     ↓ cleaned profiles
-Optional write to DB (when `--write-db`) via `pipelines.ingest_profiles`
+Optional write to DB (when `--write-db`) via pipelines
   - Upsert people (`db.repos.people_repo`)
-  - Upsert/link companies by domain (`db.repos.companies_repo`)
+  - Upsert/link companies by domain (`db.repos.companies_repo`) or direct via `pipelines.ingest_companies`
     ↓ SQLite schema (`db/schema.py`)
 Optional company enrichment (`cli.py enrich` → `pipelines.enrich_companies`)
   - Provider: stub | OpenAI | Linkup (`services/enrichment_service`)
@@ -253,3 +275,32 @@ Optional company enrichment (`cli.py enrich` → `pipelines.enrich_companies`)
 ### Linear vs branches
 - Core run (`main.py`): linear search → extract → validate/clean → print; with optional AI website discovery inside extraction, and optional DB write at the end.
 - Enrichment: separate branch triggered via CLI after ingestion. It does not run during the core search unless you invoke the CLI enrich command.
+
+## Editing Prompts and Models (Simple)
+
+- Models:
+  - Set `OPENAI_MODEL` in your environment (defaults to `gpt-4o-mini`).
+  - It is consumed via `config/settings.py` as `settings.openai_model` and used by both `services/enrichment_service.py` and `data_extractor.AIProfileExtractor`.
+
+- Prompts:
+  - Company enrichment prompt: edit `prompts/enrichment_prompt.txt`.
+  - Profile extraction prompt: edit `prompts/profile_extraction_prompt.txt`.
+  - Both are loaded at runtime; no code change needed.
+
+- Optional tracing for visibility:
+  - Enable `LLM_TRACE=true` (and optionally `LLM_LOG_PATH=logs/llm_calls.jsonl`) to log each LLM call with `provider`, `model`, `prompt_name`, and `prompt_hash`.
+
+### Per-use-case LLM routing
+
+- Central routing config: `config/llm_routes.py` defines defaults per use-case:
+  - `company_enrichment` (chat)
+  - `profile_extraction` (chat)
+  - `website_discovery_responses` (responses)
+- Default provider for `company_enrichment` is Linkup. Set `LLM_ENRICHMENT_PROVIDER=openai` to use OpenAI instead.
+- Global default model: `OPENAI_MODEL`.
+- Per-use-case overrides via env vars (optional):
+  - `OPENAI_MODEL_ENRICHMENT`, `OPENAI_MODEL_PROFILE`, `OPENAI_MODEL_RESPONSES`
+  - You can also switch providers for a route with `LLM_*_PROVIDER` (currently only `openai` implemented).
+- To use Linkup for enrichment, set `LLM_ENRICHMENT_PROVIDER=linkup` and provide `LINKUP_API_KEY`. The code will route `company_enrichment` to Linkup automatically.
+- Code calls go through `services/llm_client.LLMClient`, so you only edit `config/llm_routes.py` or env vars to change models/params for a specific step.
+- Website discovery route uses the OpenAI Responses API by default. Override the model with `OPENAI_MODEL_WEBSITE_DISCOVERY` (legacy: `OPENAI_MODEL_RESPONSES`).

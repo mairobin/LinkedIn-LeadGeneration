@@ -218,6 +218,56 @@ class DataValidator:
 
         return unique_profiles
 
+    # --- Company validation helpers (for company sources) ---
+    def validate_company_required(self, company: Dict[str, Any]) -> List[str]:
+        errors: List[str] = []
+        name = company.get('Company') or company.get('name')
+        website = company.get('Company_Website') or company.get('website')
+        domain = company.get('Company_Domain') or company.get('domain')
+        if not (name or domain or website):
+            errors.append('Company missing name/domain/website')
+        return errors
+
+    def clean_company_data(self, company: Dict[str, Any]) -> Dict[str, Any]:
+        cleaned = dict(company)
+        # Normalize trims
+        for k in ['Company', 'name', 'Company_Website', 'website', 'Company_Domain', 'domain']:
+            if k in cleaned and isinstance(cleaned[k], str):
+                cleaned[k] = cleaned[k].strip()
+        # Derive apex domain if missing
+        try:
+            from services.domain_utils import extract_apex_domain as _extract
+            if not (cleaned.get('Company_Domain') or cleaned.get('domain')):
+                website = cleaned.get('Company_Website') or cleaned.get('website')
+                apex = _extract(website) if website else None
+                if apex:
+                    cleaned['Company_Domain'] = apex
+        except Exception:
+            pass
+        return cleaned
+
+    def remove_company_duplicates(self, companies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        seen = set()
+        unique: List[Dict[str, Any]] = []
+        for c in companies:
+            key = (c.get('Company_Domain') or c.get('domain') or '').lower()
+            if not key:
+                # Fallback: name+address signature when domain missing
+                key = ((c.get('Company') or c.get('name') or '').strip().lower() + '|' + (c.get('address') or '').strip().lower())
+            if key and key not in seen:
+                seen.add(key)
+                unique.append(c)
+        return unique
+
+    def validate_all_companies(self, companies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        valid: List[Dict[str, Any]] = []
+        for c in companies:
+            errs = self.validate_company_required(c)
+            if errs:
+                continue
+            valid.append(c)
+        return valid
+
     def get_validation_stats(self) -> Dict:
         """Return validation statistics."""
         return self.validation_stats.copy()
