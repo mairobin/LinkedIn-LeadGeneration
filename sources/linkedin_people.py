@@ -27,6 +27,11 @@ class LinkedInPeopleSource(LeadSource):
             self._searcher = GoogleSearcher()
         if self._extractor is None:
             settings = get_settings()
+            # Friendly prerequisite checks for AI extraction
+            if not settings.ai_enabled or not settings.openai_api_key:
+                raise RuntimeError(
+                    "AI extraction is required for people ingestion. Set AI_ENABLED=true and provide OPENAI_API_KEY in your environment (.env)."
+                )
             self._extractor = LinkedInDataExtractor(
                 use_ai=settings.ai_enabled,
                 openai_api_key=settings.openai_api_key,

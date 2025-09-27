@@ -68,11 +68,14 @@ def test_cli_run_ingest_profiles_writes_db(tmp_path, monkeypatch):
     conn = sqlite3.connect(str(db_path))
     try:
         cur = conn.cursor()
-        cur.execute("SELECT COUNT(*) FROM people")
-        assert cur.fetchone()[0] == 1
-        cur.execute("SELECT name, domain FROM companies")
+        cur.execute("SELECT id, search_query_id FROM people")
+        prow = cur.fetchone()
+        assert prow is not None
+        pid, psqid = prow
+        assert isinstance(psqid, int) and psqid > 0
+        cur.execute("SELECT name, domain, search_query_id FROM companies")
         rows = cur.fetchall()
-        assert rows == [("Acme GmbH", "acme.com")]
+        assert rows == [("Acme GmbH", "acme.com", psqid)]
     finally:
         conn.close()
 

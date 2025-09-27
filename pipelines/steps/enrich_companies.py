@@ -120,22 +120,53 @@ class EnrichAndPersistCompanies:
         self.on_progress = on_progress
 
     def run(self, ctx: RunContext) -> RunContext:
+        import concurrent.futures as _fut
         repo = CompaniesRepo(self.conn)
         companies = ctx.companies or []
         total = len(companies)
         updated = 0
-        for idx, comp in enumerate(companies, start=1):
-            company_id = comp.get("id")
+
+        # Fetch in parallel, persist sequentially to avoid DB locks
+        def _fetch(comp):
+            cid = comp.get("id")
             name = comp.get("name")
             domain = comp.get("domain")
+            if self.on_progress:
+                try:
+                    self.on_progress(-1, total, int(cid), str(name or ""))
+                except Exception:
+                    pass
+            try:
+                return cid, name, domain, self.fetch_func(name, domain)
+            except Exception:
+                return cid, name, domain, None
+
+        results = []
+        try:
+            max_workers = max(1, ctx.meta.get("enrich_concurrency") or 4)
+        except Exception:
+            max_workers = 4
+        with _fut.ThreadPoolExecutor(max_workers=max_workers) as ex:
+            futures = [ex.submit(_fetch, c) for c in companies]
+            for idx, fut in enumerate(_fut.as_completed(futures), start=1):
+                try:
+                    results.append(fut.result())
+                except Exception:
+                    continue
+
+        # Fail fast if any enrichment returned no usable data
+        missing = [(cid, nm) for (cid, nm, _dm, data) in results if not isinstance(data, dict)]
+        if missing:
+            missing_preview = ", ".join([f"{cid}:{nm}" for cid, nm in missing[:5]])
+            raise RuntimeError(f"Company enrichment returned no data for {len(missing)} companies (e.g., {missing_preview}). Aborting.")
+
+        for idx, (company_id, name, domain, data) in enumerate(results, start=1):
+            # At this point data is guaranteed to be a dict by the guard above
             if self.on_progress:
                 try:
                     self.on_progress(idx, total, int(company_id), str(name or ""))
                 except Exception:
                     pass
-            data = self.fetch_func(name, domain)
-            if not isinstance(data, dict):
-                continue
             legal_form = _derive_legal_form(name, data.get("Legal_Form"))
             website_val = data.get("Website")
             domain_to_store = domain or (extract_apex_domain(website_val) if website_val else None)
@@ -153,6 +184,7 @@ class EnrichAndPersistCompanies:
             }
             repo.save_company_enrichment(int(company_id), fields)
             updated += 1
+
         ctx.meta["companies_enriched"] = updated
         return ctx
 

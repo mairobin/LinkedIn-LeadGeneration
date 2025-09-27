@@ -8,7 +8,7 @@ class CompaniesRepo:
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
 
-    def upsert_by_domain(self, name: Optional[str], domain: Optional[str], website: Optional[str], source_name: Optional[str] = None, source_query: Optional[str] = None) -> int:
+    def upsert_by_domain(self, name: Optional[str], domain: Optional[str], website: Optional[str], source_name: Optional[str] = None, source_query: Optional[str] = None, search_query_id: Optional[int] = None) -> int:
         """Insert or update a company row using its domain as the stable key.
 
         Returns the company id.
@@ -24,20 +24,20 @@ class CompaniesRepo:
                 company_id = int(row[0])
                 # Update minimal fields when provided
                 cur.execute(
-                    "UPDATE companies SET name = COALESCE(?, name), website = COALESCE(?, website), source_name = COALESCE(?, source_name), source_query = COALESCE(?, source_query) WHERE id = ?",
-                    (safe_name, website, source_name, source_query, company_id),
+                    "UPDATE companies SET name = COALESCE(?, name), website = COALESCE(?, website), source_name = COALESCE(?, source_name), source_query = COALESCE(?, source_query), search_query_id = COALESCE(?, search_query_id) WHERE id = ?",
+                    (safe_name, website, source_name, source_query, search_query_id, company_id),
                 )
                 self.conn.commit()
                 return company_id
             # Insert new with domain
             cur.execute(
-                "INSERT INTO companies (name, domain, website, source_name, source_query) VALUES (?, ?, ?, ?, ?)",
-                (safe_name, domain, website, source_name, source_query),
+                "INSERT INTO companies (name, domain, website, source_name, source_query, search_query_id) VALUES (?, ?, ?, ?, ?, ?)",
+                (safe_name, domain, website, source_name, source_query, search_query_id),
             )
             self.conn.commit()
             return int(cur.lastrowid)
         # No domain yet: insert a stub with name only (duplicates allowed)
-        cur.execute("INSERT INTO companies (name, source_name, source_query) VALUES (?, ?, ?)", (safe_name, source_name, source_query))
+        cur.execute("INSERT INTO companies (name, source_name, source_query, search_query_id) VALUES (?, ?, ?, ?)", (safe_name, source_name, source_query, search_query_id))
         self.conn.commit()
         return int(cur.lastrowid)
 
@@ -103,9 +103,9 @@ class CompaniesRepo:
         return cur.fetchall()
 
     # --- Normalized names (wrappers) ---
-    def upsert_company(self, name: Optional[str], domain: Optional[str], website: Optional[str], source_name: Optional[str] = None, source_query: Optional[str] = None) -> int:
+    def upsert_company(self, name: Optional[str], domain: Optional[str], website: Optional[str], source_name: Optional[str] = None, source_query: Optional[str] = None, search_query_id: Optional[int] = None) -> int:
         """Normalized wrapper for inserting/updating a company."""
-        return self.upsert_by_domain(name, domain, website, source_name, source_query)
+        return self.upsert_by_domain(name, domain, website, source_name, source_query, search_query_id)
 
     def save_company_enrichment(self, company_id: int, fields: Dict[str, Any]) -> None:
         """Normalized wrapper to persist enrichment fields for a company id."""

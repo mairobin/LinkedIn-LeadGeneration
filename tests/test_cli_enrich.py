@@ -4,6 +4,7 @@ import os
 import sys
 import sqlite3
 from typing import Any, Dict, List
+import pytest
 
 
 def _run_cli_with_args(args_list: List[str]) -> None:
@@ -55,5 +56,32 @@ def test_cli_run_enrich_companies_with_stub(tmp_path, monkeypatch):
         assert last_enriched_at is not None
     finally:
         conn.close()
+
+
+def test_enrich_companies_failfast_on_missing_data(tmp_path, monkeypatch):
+    # Prepare DB with one pending company
+    db_path = tmp_path / "cli_enrich_fail.db"
+    _run_cli_with_args(["--db", str(db_path), "bootstrap"])
+    import sqlite3
+    conn = sqlite3.connect(str(db_path))
+    try:
+        conn.execute("INSERT INTO companies(name, domain) VALUES(?, ?)", ("Broken Co", "broken.example"))
+        conn.commit()
+    finally:
+        conn.close()
+    # Force gateway fetch to end up with None by making the LLM client return None
+    monkeypatch.setenv("RUN_ENV", "test")
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    # IMPORTANT: clear cached settings so provider change takes effect
+    from config.settings import get_settings
+    try:
+        get_settings.cache_clear()  # type: ignore[attr-defined]
+    except Exception:
+        pass
+    import services.llm_client as llm
+    monkeypatch.setattr(llm.LLMClient, "enrich_company", lambda self, **kwargs: None)
+    # Running enrich should raise due to fail-fast in pipeline
+    with pytest.raises(RuntimeError):
+        _run_cli_with_args(["--db", str(db_path), "run", "enrich-companies", "--limit", "5"]) 
 
 

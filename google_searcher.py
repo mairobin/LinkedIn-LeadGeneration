@@ -3,6 +3,7 @@ Google Custom Search API integration for LinkedIn profile searches.
 """
 import requests
 import time
+import threading
 import logging
 from typing import List, Dict, Any, Optional
 from config.settings import get_settings, Settings
@@ -15,6 +16,11 @@ class GoogleSearcher:
         self.api_key = self.settings.google_api_key
         self.cse_id = self.settings.google_cse_id
         self.api_calls_made = 0
+        # Simple QPS control and thread safety
+        self._lock = threading.Lock()
+        self._last_call_ts = 0.0
+        # Simple in-memory cache for JSON payloads
+        self._cache: dict[tuple[str, int], Dict] = {}
 
         if not self.api_key or not self.cse_id:
             raise ValueError("Google API key and Custom Search Engine ID must be set in .env file")
@@ -25,29 +31,57 @@ class GoogleSearcher:
         terms_part = " ".join(quoted_terms)
         return f'site:linkedin.com/in {terms_part}'
 
+    def _get_cached(self, query: str, start_index: int) -> Optional[Dict]:
+        return self._cache.get((query, start_index))
+
+    def _respect_qps(self) -> None:
+        # Enforce minimum delay between calls based on SEARCH_RATE_LIMIT_QPS
+        qps = max(float(self.settings.search_rate_limit_qps or 2.0), 0.1)
+        min_interval = 1.0 / qps
+        with self._lock:
+            now = time.time()
+            delta = now - self._last_call_ts
+            if delta < min_interval:
+                time.sleep(min_interval - delta)
+            self._last_call_ts = time.time()
+
     def search_single_page(self, query: str, start_index: int = 1) -> Optional[Dict]:
         """Execute a single Google Custom Search API request."""
-        params = {
-            'key': self.api_key,
-            'cx': self.cse_id,
-            'q': query,
-            'start': start_index,
-            'num': self.settings.results_per_page
-        }
-
         for attempt in range(self.settings.max_retries):
             try:
+                self._respect_qps()
                 logging.info(f"Making API call {self.api_calls_made + 1}, start index: {start_index}")
-                response = requests.get(self.settings.google_search_url, params=params, timeout=self.settings.request_timeout_seconds)
+                # Serve from cache if available
+                cached = self._get_cached(query, start_index)
+                if cached is not None:
+                    logging.info("Cache hit for Google CSE page %s", start_index)
+                    return cached
+
+                params = {
+                    'key': self.api_key,
+                    'cx': self.cse_id,
+                    'q': query,
+                    'start': start_index,
+                    'num': self.settings.results_per_page
+                }
+                resp = requests.get(self.settings.google_search_url, params=params, timeout=self.settings.request_timeout_seconds)
                 self.api_calls_made += 1
 
-                if response.status_code == 200:
-                    return response.json()
-                elif response.status_code == 429:
+                if resp is not None and resp.status_code == 200:
+                    data = resp.json()
+                    # Populate cache
+                    try:
+                        self._cache[(query, start_index)] = data
+                    except Exception:
+                        pass
+                    return data
+                elif resp is not None and resp.status_code == 429:
                     logging.warning("API rate limit exceeded")
                     return None
                 else:
-                    logging.error(f"API request failed with status {response.status_code}: {response.text}")
+                    status = getattr(resp, 'status_code', 'unknown')
+                    text = getattr(resp, 'text', '')
+                    logging.error(f"API request failed with status {status}: {text}")
 
             except requests.exceptions.RequestException as e:
                 logging.error(f"Request error on attempt {attempt + 1}: {e}")

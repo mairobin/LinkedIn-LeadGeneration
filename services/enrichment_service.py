@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Tuple
 import requests
 from bs4 import BeautifulSoup
 from config.settings import get_settings
+from functools import lru_cache
 from services.domain_utils import extract_apex_domain
 """All env loading is centralized in config.settings; no direct dotenv here."""
 
@@ -56,6 +57,7 @@ def _extract_json(text: str) -> Optional[Dict[str, Any]]:
     return None
 
 
+@lru_cache(maxsize=256)
 def _google_search_homepage(company_name: str) -> Tuple[Optional[str], Optional[str]]:
     """Use Google CSE to find a likely homepage URL for the company.
 
@@ -92,6 +94,7 @@ def _google_search_homepage(company_name: str) -> Tuple[Optional[str], Optional[
         return None, None
 
 
+@lru_cache(maxsize=256)
 def _fetch_page_text(url: str, max_chars: int = 4000) -> Optional[str]:
     try:
         settings = get_settings()

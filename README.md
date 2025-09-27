@@ -169,6 +169,23 @@ python cli.py report-recent --limit 5 --db leads.db
 python cli.py report-person --profile https://linkedin.com/in/example --db leads.db
 ```
 
+### Query reporting (new)
+- List queries used:
+```sql
+SELECT id, source, entity_type, query_text, last_executed_at
+FROM search_queries
+ORDER BY last_executed_at DESC NULLS LAST, created_at DESC;
+```
+- People totals per query:
+```sql
+SELECT q.id, q.source, q.query_text, COUNT(p.id) AS people_count
+FROM search_queries q
+LEFT JOIN people p ON p.search_query_id = q.id
+WHERE q.entity_type = 'person'
+GROUP BY q.id, q.source, q.query_text
+ORDER BY people_count DESC;
+```
+
 ## Features
 
 ### Enrichment and Normalization
@@ -201,8 +218,9 @@ Environment variables (`.env`):
 ## Database Overview
 
 SQLite schema is bootstrapped by `cli.py bootstrap`:
-- `people`: normalized person data with unique `linkedin_profile`; `lookup_date` timestamped on insert.
-- `companies`: enrichment targets and attributes (`legal_form`, `industries_json`, `size_employees`, ...).
+- `people`: normalized person data with unique `linkedin_profile`; `lookup_date` timestamped on insert; includes `search_query_id`.
+- `companies`: enrichment targets and attributes (`legal_form`, `industries_json`, `size_employees`, ...); includes `search_query_id`.
+- `search_queries`: canonical queries across sources/entity types. One row per normalized query. Pipelines link people/companies to a query.
 - `v_people_with_company`: convenient view for joined reads.
 - Outreach tables: `outreach_templates`, `outreach_messages` for future messaging workflows.
 
@@ -237,6 +255,7 @@ Validation & cleanup (`pipelines.steps.validate_data.DataValidator`)
   - clean_profile_data → normalize fields
     ↓ cleaned profiles
 Optional write to DB (when `--write-db`) via pipelines
+  - Resolve canonical query id (`db.repos.queries_repo`) and set `search_query_id` on people/companies
   - Upsert people (`db.repos.people_repo`)
   - Upsert/link companies by domain (`db.repos.companies_repo`) or direct via `pipelines.ingest_companies`
     ↓ SQLite schema (`db/schema.py`)

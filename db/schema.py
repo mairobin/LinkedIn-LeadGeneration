@@ -7,6 +7,17 @@ def bootstrap(conn: sqlite3.Connection) -> None:
     """Create normalized schema, indexes, and views (idempotent)."""
     cur = conn.cursor()
 
+    # Schema versioning (lightweight)
+    cur.execute(
+        (
+            "CREATE TABLE IF NOT EXISTS schema_version (\n"
+            "  id INTEGER PRIMARY KEY CHECK (id = 1),\n"
+            "  version INTEGER NOT NULL\n"
+            ")"
+        )
+    )
+    cur.execute("INSERT OR IGNORE INTO schema_version (id, version) VALUES (1, 1);")
+
     # Companies table
     cur.execute(
         (
@@ -25,6 +36,7 @@ def bootstrap(conn: sqlite3.Connection) -> None:
             "  recent_news_json TEXT,\n"
             "  source_name TEXT,\n"
             "  source_query TEXT,\n"
+            "  search_query_id INTEGER,\n"
             "  last_enriched_at TEXT\n"
             ")" 
         )
@@ -57,6 +69,7 @@ def bootstrap(conn: sqlite3.Connection) -> None:
             "  source_name TEXT,\n"
             "  source_query TEXT,\n"
             "  company_id INTEGER,\n"
+            "  search_query_id INTEGER,\n"
             "  FOREIGN KEY(company_id) REFERENCES companies(id) ON DELETE SET NULL\n"
             ")"
         )
@@ -115,6 +128,15 @@ def bootstrap(conn: sqlite3.Connection) -> None:
         cur.execute("ALTER TABLE people ADD COLUMN source_query TEXT;")
     except Exception:
         pass
+    # Backfill query linkage columns if table existed before
+    try:
+        cur.execute("ALTER TABLE people ADD COLUMN search_query_id INTEGER;")
+    except Exception:
+        pass
+    try:
+        cur.execute("ALTER TABLE companies ADD COLUMN search_query_id INTEGER;")
+    except Exception:
+        pass
     # Backfill provenance columns for companies
     try:
         cur.execute("ALTER TABLE companies ADD COLUMN source_name TEXT;")
@@ -126,6 +148,25 @@ def bootstrap(conn: sqlite3.Connection) -> None:
         pass
     cur.execute("CREATE INDEX IF NOT EXISTS idx_people_company_id ON people(company_id);")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_people_last_first ON people(last_name, first_name);")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_people_search_query_id ON people(search_query_id);")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_companies_search_query_id ON companies(search_query_id);")
+
+    # Canonical search queries table (KISS)
+    cur.execute(
+        (
+            "CREATE TABLE IF NOT EXISTS search_queries (\n"
+            "  id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+            "  source TEXT NOT NULL,\n"
+            "  entity_type TEXT NOT NULL,\n"
+            "  query_text TEXT NOT NULL,\n"
+            "  normalized_query TEXT NOT NULL,\n"
+            "  created_at TEXT NOT NULL DEFAULT (datetime('now')),\n"
+            "  last_executed_at TEXT,\n"
+            "  UNIQUE (source, entity_type, normalized_query)\n"
+            ")"
+        )
+    )
+    cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_queries_unique ON search_queries(source, entity_type, normalized_query);")
 
     # Outreach tables
     cur.execute(
@@ -201,6 +242,39 @@ def bootstrap(conn: sqlite3.Connection) -> None:
             "FROM people p LEFT JOIN companies c ON p.company_id = c.id;"
         )
     )
+
+    # Idempotent backfill: create canonical queries from existing people rows and link them
+    try:
+        cur.execute(
+            (
+                "INSERT OR IGNORE INTO search_queries (source, entity_type, query_text, normalized_query)\n"
+                "SELECT DISTINCT COALESCE(source_name, ''), 'person', COALESCE(source_query, ''), lower(trim(COALESCE(source_query, '')))\n"
+                "FROM people\n"
+                "WHERE COALESCE(source_query, '') <> ''"
+            )
+        )
+        cur.execute(
+            (
+                "UPDATE people\n"
+                "SET search_query_id = (\n"
+                "  SELECT id FROM search_queries q\n"
+                "  WHERE q.source = COALESCE(people.source_name, '')\n"
+                "    AND q.entity_type = 'person'\n"
+                "    AND q.normalized_query = lower(trim(COALESCE(people.source_query, '')))\n"
+                ")\n"
+                "WHERE search_query_id IS NULL\n"
+                "  AND COALESCE(source_query, '') <> ''"
+            )
+        )
+    except Exception:
+        # Best effort backfill; ignore in bootstrap failures
+        pass
+
+    # Bump schema version if needed (example: still at version 1)
+    try:
+        cur.execute("UPDATE schema_version SET version = 1 WHERE id = 1;")
+    except Exception:
+        pass
 
     conn.commit()
 

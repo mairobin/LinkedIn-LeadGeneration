@@ -11,7 +11,7 @@ def test_update_enrichment_skips_conflicting_domain(tmp_path):
     try:
         schema.bootstrap(db)
         repo = CompaniesRepo(db)
-        a = repo.upsert_company("Acme", "acme.com", "https://acme.com")
+        a = repo.upsert_company("Acme", "acme.com", "https://acme.com", source_name="linkedin_people_google", source_query="Engineer Berlin", search_query_id=1)
         b = repo.upsert_company("Beta", "beta.io", "https://beta.io")
         assert a != b
         # Attempt to change Beta's domain to Acme's domain (should be skipped)
